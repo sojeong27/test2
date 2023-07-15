@@ -50,7 +50,7 @@ question = st.text_input(
 )
 
 if question:
-    preset_text = f'다음 키워드를 이용하여 질문을 작성하고자 합니다.\n키워드:{question}'
+    preset_text = f'다음 키워드를 이용하여 5개의 질문을 만들하고자 합니다.\n키워드:{question}'
 
     request_data = {
         'text': preset_text,
