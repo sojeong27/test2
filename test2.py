@@ -67,5 +67,5 @@ if question:
     }
 
     response_text = completion_executor.execute(request_data)
-    print(response_text)
+    #print(response_text)
     st.markdown(response_text.split('###')[1])
