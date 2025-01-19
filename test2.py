@@ -8,7 +8,8 @@ import os
 load_dotenv()
 
 # ChatGPT 초기화
-llm = ChatOpenAI(model_name="gpt-4o", temperature=0)
+llm = ChatOpenAI(model_name="gpt-4", temperature=0)
+
 
 def get_chatgpt_suggestions(input_text):
     """ChatGPT로부터 세부 주제 생성"""
@@ -16,11 +17,13 @@ def get_chatgpt_suggestions(input_text):
     response = llm.predict(prompt)
     return [line.strip() for line in response.split("\n") if line.strip()][:5]
 
+
 def get_topic_details(selected_text):
     """선택된 주제에 대한 상세 설명 생성"""
     prompt = f"'{selected_text}'에 대해 초등학교 6학년 수준으로 상세히 설명해 주세요."
     response = llm.predict(prompt)
     return response
+
 
 def sidebar():
     """사이드바 렌더링"""
@@ -31,20 +34,83 @@ def sidebar():
                 background-color: #031924;
                 padding-top: 20px;
             }
+            [data-testid="stSidebar"] .sidebar-title {
+                color: #FFFFFF;
+                font-size: 18px;
+                font-weight: bold;
+                text-align: center;
+                margin-bottom: 20px;
+            }
         </style>
         """,
         unsafe_allow_html=True,
     )
+    st.sidebar.markdown('<div class="sidebar-title">디지털 리터러시</div>', unsafe_allow_html=True)
     try:
         st.sidebar.image("images/logo-removebg.png", use_container_width=True)
     except FileNotFoundError:
         st.sidebar.write("로고 이미지를 찾을 수 없습니다.")
 
+
 def main():
-    st.title("디지털 리터러시 with AI")
+    st.markdown(
+        """
+        <style>
+            body {
+                font-family: "Arial", sans-serif;
+                background-color: #F9F9F9;
+                color: #333333;
+            }
+            .main-title {
+                text-align: center;
+                font-size: 36px;
+                color: #003366;
+                font-weight: bold;
+                margin-bottom: 20px;
+            }
+            .sub-title {
+                font-size: 20px;
+                color: #0055AA;
+                margin-bottom: 10px;
+            }
+            .custom-button {
+                background-color: #E6F3FF;
+                color: black;
+                border: 2px solid #003366;
+                border-radius: 5px;
+                padding: 10px;
+                margin-bottom: 10px;
+                font-size: 16px;
+                font-weight: bold;
+                text-align: center;
+                cursor: pointer;
+                transition: all 0.3s ease;
+            }
+            .custom-button:hover {
+                background-color: #CCE5FF;
+                color: #003366;
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            }
+            .custom-button.selected {
+                background-color: #003366;
+                color: white;
+            }
+            .content-box {
+                background-color: white;
+                padding: 20px;
+                border-radius: 10px;
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+                margin-bottom: 20px;
+            }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    st.markdown('<div class="main-title">디지털 리터러시 with AI</div>', unsafe_allow_html=True)
 
     # 화면 분할
-    col1, col2 = st.columns([1, 1])
+    col1, col2 = st.columns([3, 2])
 
     # 상태 초기화
     if "suggestions" not in st.session_state:
@@ -55,7 +121,7 @@ def main():
         st.session_state.topic_details = ""
 
     with col1:
-        st.subheader("자료 탐색")
+        st.markdown('<div class="sub-title">자료 탐색</div>', unsafe_allow_html=True)
         input_topic = st.text_input("학습 주제 입력", placeholder="학습 주제를 입력하세요")
 
         if st.button("주제 생성"):
@@ -67,43 +133,39 @@ def main():
                     st.session_state.selected_text = None
 
         if st.session_state.suggestions:
-            st.markdown("**추천 주제**")
+            st.markdown('<div class="sub-title">추천 주제</div>', unsafe_allow_html=True)
 
             # 버튼 스타일링
             for i, suggestion in enumerate(st.session_state.suggestions):
                 is_selected = st.session_state.selected_text == suggestion
+                selected_class = "selected" if is_selected else ""
 
-                # CSS 스타일 적용
-                button_color = "#CCE5FF" if is_selected else "#E6F3FF"
-                text_color = "#003366" if is_selected else "#000000"
+                # HTML 버튼 생성
                 button_html = f"""
-                    <button onclick="window.location.href='?selected={i}'"
-                        style="
-                            background-color: {button_color};
-                            color: {text_color};
-                            border: 2px solid #003366;
-                            border-radius: 5px;
-                            padding: 10px;
-                            text-align: left;
-                            width: 100%;
-                            margin-bottom: 10px;
-                            cursor: pointer;
-                        ">
+                    <div class="custom-button {selected_class}" onclick="window.location.href='?selected={i}'">
                         {suggestion}
-                    </button>
+                    </div>
                 """
-
                 st.markdown(button_html, unsafe_allow_html=True)
+                if is_selected:
+                    st.session_state.selected_text = suggestion
+                    st.session_state.topic_details = get_topic_details(suggestion)
 
     with col2:
         if st.session_state.selected_text:
-            st.subheader(f"선택한 주제: {st.session_state.selected_text}")
+            st.markdown('<div class="sub-title">선택한 주제</div>', unsafe_allow_html=True)
+            st.markdown(
+                f"<div class='content-box'><strong>{st.session_state.selected_text}</strong></div>",
+                unsafe_allow_html=True,
+            )
+
             details = st.session_state.topic_details
 
             # Quill 에디터로 내용 표시
             content = st_quill(value=details, key="editor", html=False)
             if content:
                 st.session_state.editor_content = content
+
 
 if __name__ == "__main__":
     st.set_page_config(
