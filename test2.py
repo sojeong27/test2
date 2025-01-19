@@ -1,40 +1,48 @@
 import streamlit as st
 from streamlit_quill import st_quill
-from io import BytesIO
-from reportlab.lib.pagesizes import letter
-from reportlab.pdfgen import canvas
+from dotenv import load_dotenv
+from langchain.chat_models import ChatOpenAI
+import os
+
+# 환경 변수 로드
+load_dotenv()
+
+# ChatGPT 초기화
+llm = ChatOpenAI(model_name="gpt-4", temperature=0)
 
 
-def generate_pdf(content):
-    """
-    Generate a PDF file from the provided content.
-    """
-    buffer = BytesIO()
-    c = canvas.Canvas(buffer, pagesize=letter)
-    c.drawString(100, 750, "출력 내용")
-    lines = content.split("\n")
-    y = 730
-    for line in lines:
-        c.drawString(100, y, line)
-        y -= 20
-        if y < 50:  # Add a new page if content exceeds the current page
-            c.showPage()
-            y = 750
-    c.save()
-    buffer.seek(0)
-    return buffer
+def get_chatgpt_suggestions(input_text):
+    """ChatGPT로부터 세부 주제 생성"""
+    prompt = f"'{input_text}'와 관련된 5개의 세부 주제를 간결하게 생성해 주세요."
+    response = llm.predict(prompt)
+    return [line.strip() for line in response.split("\n") if line.strip()][:5]
+
+
+def get_topic_details(selected_text):
+    """선택된 주제에 대한 상세 설명 생성"""
+    prompt = f"'{selected_text}'에 대해 초등학교 6학년 수준으로 상세히 설명해 주세요."
+    response = llm.predict(prompt)
+    return response
 
 
 def sidebar():
-    """사이드바 설정"""
+    """사이드바 렌더링"""
     st.sidebar.image("images/logo-removebg.png", use_container_width=True)
 
 
 def main():
-    """메인 화면 구성"""
     st.title("디지털 리터러시 with AI")
 
-    col1, col2 = st.columns([1, 1])
+    # 화면 분할
+    col1, col2 = st.columns([2, 3])
+
+    # 상태 초기화
+    if "suggestions" not in st.session_state:
+        st.session_state.suggestions = []
+    if "selected_text" not in st.session_state:
+        st.session_state.selected_text = None
+    if "topic_details" not in st.session_state:
+        st.session_state.topic_details = ""
 
     with col1:
         st.subheader("자료 탐색")
@@ -44,36 +52,24 @@ def main():
             if not input_topic.strip():
                 st.warning("학습 주제를 입력하세요.")
             else:
-                st.session_state.suggestions = [
-                    "바람을 통해 씨가 퍼지는 식물",
-                    "물에 의해 씨가 퍼지는 식물",
-                    "동물에 의해 씨가 퍼지는 식물",
-                    "중력에 의해 씨가 퍼지는 식물",
-                    "사람의 도움으로 퍼지는 식물",
-                ]
-                st.session_state.selected_text = None
+                with st.spinner("ChatGPT에서 데이터를 가져오는 중..."):
+                    st.session_state.suggestions = get_chatgpt_suggestions(input_topic)
+                    st.session_state.selected_text = None
 
-        if "suggestions" in st.session_state:
-            st.markdown("**추천 주제**")
+        if st.session_state.suggestions:
+            st.subheader("추천 주제")
+
+            # 버튼 생성 및 상태 관리
             for i, suggestion in enumerate(st.session_state.suggestions):
-                is_selected = (
-                    "selected_text" in st.session_state
-                    and st.session_state.selected_text == suggestion
-                )
-
-                button_style = (
-                    "background-color: #003366; color: white; border: 2px solid #003366; padding: 10px; border-radius: 5px; width: 100%; margin-bottom: 10px;"
-                    if is_selected
-                    else "background-color: #E6F3FF; color: black; border: 2px solid #003366; padding: 10px; border-radius: 5px; width: 100%; margin-bottom: 10px;"
-                )
-
-                if st.button(suggestion, key=f"btn_{i}"):
+                if st.button(suggestion, key=f"suggestion_{i}"):
                     st.session_state.selected_text = suggestion
-                    st.session_state.topic_details = f"{suggestion}에 대한 세부 내용이 여기에 표시됩니다."
+                    st.session_state.topic_details = get_topic_details(suggestion)
 
     with col2:
-        if "selected_text" in st.session_state and st.session_state.selected_text:
-            st.subheader(f"선택한 주제: {st.session_state.selected_text}")
+        if st.session_state.selected_text:
+            st.subheader("선택한 주제")
+            st.markdown(f"**{st.session_state.selected_text}**")
+
             details = st.session_state.topic_details
 
             # Quill 에디터로 내용 표시
@@ -81,15 +77,15 @@ def main():
             if content:
                 st.session_state.editor_content = content
 
-            # Add "출력" button
-            if st.button("출력"):
-                pdf_file = generate_pdf(st.session_state.editor_content)
-                st.download_button(
-                    label="PDF 파일 다운로드",
-                    data=pdf_file,
-                    file_name="output.pdf",
-                    mime="application/pdf",
-                )
+            # "복사" 버튼 및 JavaScript 추가
+            if st.button("복사"):
+                js_code = f"""
+                <script>
+                navigator.clipboard.writeText(`{st.session_state.editor_content}`);
+                alert("내용이 클립보드에 복사되었습니다!");
+                </script>
+                """
+                st.markdown(js_code, unsafe_allow_html=True)
 
 
 if __name__ == "__main__":
@@ -100,4 +96,5 @@ if __name__ == "__main__":
     )
     sidebar()
     main()
+
 
