@@ -3,6 +3,7 @@ from streamlit_quill import st_quill
 from dotenv import load_dotenv
 from langchain.chat_models import ChatOpenAI
 import os
+import pyperclip  # 클립보드 복사 모듈
 
 # 환경 변수 로드
 load_dotenv()
@@ -126,22 +127,13 @@ def main():
             if content:
                 st.session_state.editor_content = content
 
-            # 복사 버튼과 JavaScript 사용
-            st.markdown(
-                f"""
-                <button onclick="navigator.clipboard.writeText(`{st.session_state.editor_content}`)" 
-                        style="background-color: #0055AA; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer;">
-                    복사
-                </button>
-                <script>
-                    const copyButton = document.querySelector("button");
-                    copyButton.addEventListener("click", () => {{
-                        alert("내용이 클립보드에 복사되었습니다!");
-                    }});
-                </script>
-                """,
-                unsafe_allow_html=True,
-            )
+            # 복사 버튼 생성
+            if st.button("복사"):
+                try:
+                    pyperclip.copy(st.session_state.editor_content)
+                    st.success("내용이 클립보드에 복사되었습니다.")
+                except pyperclip.PyperclipException as e:
+                    st.error(f"복사 실패: {str(e)}")
 
 if __name__ == "__main__":
     st.set_page_config(
