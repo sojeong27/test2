@@ -8,7 +8,7 @@ import os
 load_dotenv()
 
 # ChatGPT 초기화
-llm = ChatOpenAI(model_name="gpt-4", temperature=0)
+llm = ChatOpenAI(model_name="gpt-4o", temperature=0)
 
 def get_chatgpt_suggestions(input_text):
     """ChatGPT로부터 세부 주제 생성"""
@@ -69,18 +69,31 @@ def main():
         if st.session_state.suggestions:
             st.markdown("**추천 주제**")
 
-            # 추천 주제 버튼 생성
+            # 버튼 스타일링
             for i, suggestion in enumerate(st.session_state.suggestions):
                 is_selected = st.session_state.selected_text == suggestion
 
-                if st.button(
-                    suggestion,
-                    key=f"suggestion_{i}",
-                    help="이 주제를 선택합니다.",
-                ):
-                    st.session_state.selected_text = suggestion
-                    with st.spinner("ChatGPT에서 데이터를 가져오는 중..."):
-                        st.session_state.topic_details = get_topic_details(suggestion)
+                # CSS 스타일 적용
+                button_color = "#CCE5FF" if is_selected else "#E6F3FF"
+                text_color = "#003366" if is_selected else "#000000"
+                button_html = f"""
+                    <button onclick="window.location.href='?selected={i}'"
+                        style="
+                            background-color: {button_color};
+                            color: {text_color};
+                            border: 2px solid #003366;
+                            border-radius: 5px;
+                            padding: 10px;
+                            text-align: left;
+                            width: 100%;
+                            margin-bottom: 10px;
+                            cursor: pointer;
+                        ">
+                        {suggestion}
+                    </button>
+                """
+
+                st.markdown(button_html, unsafe_allow_html=True)
 
     with col2:
         if st.session_state.selected_text:
