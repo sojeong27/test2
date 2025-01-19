@@ -3,6 +3,7 @@ from streamlit_quill import st_quill
 from dotenv import load_dotenv
 from langchain.chat_models import ChatOpenAI
 import os
+import clipboard  # 클립보드 복사 라이브러리
 
 # 환경 변수 로드
 load_dotenv()
@@ -64,32 +65,18 @@ def main():
         st.subheader(f"선택한 주제: {st.session_state.selected_text}")
         details = st.session_state.topic_details
         content = st_quill(value=details, key="editor", html=False)
+
         if content:
             st.session_state.editor_content = content
 
-        # 복사 버튼 생성 (JavaScript 기반)
-        st.markdown(
-            f"""
-            <button class="copy-button" 
-                    onclick="navigator.clipboard.writeText(`{st.session_state.editor_content}`)">
-                복사
-            </button>
-            <style>
-                .copy-button {{
-                    background-color: #0055AA;
-                    color: white;
-                    padding: 10px 20px;
-                    border: none;
-                    border-radius: 5px;
-                    cursor: pointer;
-                }}
-                .copy-button:hover {{
-                    background-color: #003366;
-                }}
-            </style>
-            """,
-            unsafe_allow_html=True,
-        )
+        # 복사 버튼 생성
+        if st.button("복사"):
+            try:
+                # clipboard 라이브러리를 사용해 내용 복사
+                clipboard.copy(st.session_state.editor_content)
+                st.success("내용이 클립보드에 복사되었습니다!")
+            except Exception as e:
+                st.error(f"복사 실패: {str(e)}")
 
 
 if __name__ == "__main__":
