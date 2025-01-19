@@ -72,12 +72,26 @@ def main():
         if content:
             st.session_state.editor_content = content
 
-        # 복사 버튼
-        if st.button("복사"):
-            st.session_state.copied_content = st.session_state.editor_content
-            st.success("내용이 클립보드에 복사되었습니다!")
-            # 클립보드에 복사된 내용을 UI로 확인
-            st.text_area("클립보드 내용", st.session_state.copied_content, height=100)
+        # 복사 버튼 생성 (JavaScript 기반)
+        st.markdown(
+            f"""
+            <button class="copy-button" onclick="navigator.clipboard.writeText(`{st.session_state.editor_content}`)">
+                복사
+            </button>
+            <p id="copy-result" style="color: green; margin-top: 10px;"></p>
+            <script>
+                const copyButton = document.querySelector('.copy-button');
+                copyButton.addEventListener('click', () => {{
+                    const resultText = document.getElementById('copy-result');
+                    resultText.textContent = "내용이 클립보드에 복사되었습니다!";
+                    setTimeout(() => {{
+                        resultText.textContent = "";
+                    }}, 3000);
+                }});
+            </script>
+            """,
+            unsafe_allow_html=True,
+        )
 
 if __name__ == "__main__":
     st.set_page_config(
@@ -87,4 +101,5 @@ if __name__ == "__main__":
     )
     sidebar()
     main()
+
 
