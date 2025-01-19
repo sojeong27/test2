@@ -22,8 +22,7 @@ def get_topic_details(selected_text):
     response = llm.predict(prompt)
     return response
 
-# 사이드바 스타일
-
+# 사이드바 설정
 def sidebar():
     st.markdown(
         """
@@ -32,17 +31,13 @@ def sidebar():
                 background-color: #031924;
                 padding-top: 20px;
             }
-            [data-testid="stSidebar"] img {
-                margin: 0 auto;
-                display: block;
-            }
         </style>
         """,
         unsafe_allow_html=True,
     )
-    st.sidebar.image("images/logo-removebg.png", use_column_width=True)
+    st.sidebar.image("images/logo-removebg.png", use_container_width=True)
 
-# 메인 함수
+# 메인 애플리케이션
 
 def main():
     st.title("디지털 리터러시 with AI")
@@ -62,7 +57,6 @@ def main():
 
         if "suggestions" in st.session_state:
             st.markdown("**추천 주제**")
-
             for i, suggestion in enumerate(st.session_state.suggestions):
                 is_selected = (
                     "selected_text" in st.session_state
@@ -73,21 +67,10 @@ def main():
                     if is_selected
                     else "background-color: #E6F3FF; color: black;"
                 )
-                st.markdown(
-                    f"""
-                    <button style="
-                        {button_style}
-                        border: 2px solid #003366;
-                        border-radius: 5px;
-                        padding: 10px;
-                        text-align: left;
-                        width: 100%;
-                        margin-bottom: 10px;
-                    " onclick="window.location.href='#selected_topic'">{suggestion}</button>
-                    """,
-                    unsafe_allow_html=True,
-                )
-                if st.button(suggestion, key=f"suggestion_{i}"):
+
+                if st.button(
+                    suggestion, key=f"suggestion_{i}", help="주제를 클릭하세요."
+                ):
                     st.session_state.selected_text = suggestion
                     st.session_state.topic_details = get_topic_details(suggestion)
 
