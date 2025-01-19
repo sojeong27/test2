@@ -10,13 +10,11 @@ load_dotenv()
 # ChatGPT 초기화
 llm = ChatOpenAI(model_name="gpt-4", temperature=0)
 
-
 def get_chatgpt_suggestions(input_text):
     """ChatGPT로부터 세부 주제 생성"""
     prompt = f"'{input_text}'와 관련된 5개의 세부 주제를 간결하게 생성해 주세요."
     response = llm.predict(prompt)
     return [line.strip() for line in response.split("\n") if line.strip()][:5]
-
 
 def get_topic_details(selected_text):
     """선택된 주제에 대한 상세 설명 생성"""
@@ -24,11 +22,9 @@ def get_topic_details(selected_text):
     response = llm.predict(prompt)
     return response
 
-
 def sidebar():
     """사이드바 렌더링"""
     st.sidebar.image("images/logo-removebg.png", use_container_width=True)
-
 
 def main():
     st.title("디지털 리터러시 with AI")
@@ -81,12 +77,12 @@ def main():
             if st.button("복사"):
                 js_code = f"""
                 <script>
-                navigator.clipboard.writeText(`{st.session_state.editor_content}`);
-                alert("내용이 클립보드에 복사되었습니다!");
+                    navigator.clipboard.writeText(`{st.session_state.editor_content}`);
+                    alert("내용이 클립보드에 복사되었습니다!");
                 </script>
                 """
-                st.markdown(js_code, unsafe_allow_html=True)
-
+                # JavaScript 삽입
+                st.components.v1.html(js_code, height=0)
 
 if __name__ == "__main__":
     st.set_page_config(
@@ -96,5 +92,4 @@ if __name__ == "__main__":
     )
     sidebar()
     main()
-
 
