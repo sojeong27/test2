@@ -10,54 +10,48 @@ load_dotenv()
 # ChatGPT 초기화
 llm = ChatOpenAI(model_name="gpt-4", temperature=0)
 
-
-# ChatGPT로부터 추천 주제 가져오기
+# ChatGPT로부터 세부 주제 생성
 def get_chatgpt_suggestions(input_text):
     prompt = f"'{input_text}'와 관련된 5개의 세부 주제를 간결하게 생성해 주세요."
     response = llm.predict(prompt)
     return [line.strip() for line in response.split("\n") if line.strip()][:5]
 
-
-# 선택된 주제 상세 내용 가져오기
+# 선택된 주제에 대한 상세 설명 생성
 def get_topic_details(selected_text):
     prompt = f"'{selected_text}'에 대해 초등학교 6학년 수준으로 상세히 설명해 주세요."
     response = llm.predict(prompt)
     return response
 
+# 사이드바 스타일
 
-# 사이드바 디자인
 def sidebar():
-    st.sidebar.image("images/logo-removebg.png", width=150)
-    st.sidebar.markdown(
+    st.markdown(
         """
         <style>
             [data-testid="stSidebar"] {
-                background-color: #031924; 
+                background-color: #031924;
+                padding-top: 20px;
             }
-            .sidebar-title {
-                font-size: 1.5rem; 
-                color: white; 
-                text-align: center;
-                margin-bottom: 1rem;
+            [data-testid="stSidebar"] img {
+                margin: 0 auto;
+                display: block;
             }
         </style>
-        <div class="sidebar-title">디지털 리터러시 with AI</div>
         """,
         unsafe_allow_html=True,
     )
+    st.sidebar.image("images/logo-removebg.png", use_column_width=True)
 
+# 메인 함수
 
-# 메인 화면 디자인
 def main():
-    st.title("자료 탐색")
-    st.markdown("AI와 협력을 통해 학습에 필요한 자료를 탐색하고 수집합니다.")
+    st.title("디지털 리터러시 with AI")
 
-    # 중앙 레이아웃
-    col1, col2 = st.columns([1, 2])
+    col1, col2 = st.columns([1, 1])  # 1:1 화면 분할
 
     with col1:
-        st.subheader("학습 주제 입력")
-        input_topic = st.text_input("학습 주제", placeholder="학습 주제를 입력하세요")
+        st.subheader("자료 탐색")
+        input_topic = st.text_input("학습 주제 입력", placeholder="학습 주제를 입력하세요")
 
         if st.button("주제 생성"):
             if not input_topic.strip():
@@ -67,12 +61,31 @@ def main():
                 st.session_state.selected_text = None
 
         if "suggestions" in st.session_state:
-            st.subheader("추천 주제")
+            st.markdown("**추천 주제**")
+
             for i, suggestion in enumerate(st.session_state.suggestions):
+                is_selected = (
+                    "selected_text" in st.session_state
+                    and st.session_state.selected_text == suggestion
+                )
                 button_style = (
                     "background-color: #003366; color: white;"
-                    if st.session_state.get("selected_text") == suggestion
+                    if is_selected
                     else "background-color: #E6F3FF; color: black;"
+                )
+                st.markdown(
+                    f"""
+                    <button style="
+                        {button_style}
+                        border: 2px solid #003366;
+                        border-radius: 5px;
+                        padding: 10px;
+                        text-align: left;
+                        width: 100%;
+                        margin-bottom: 10px;
+                    " onclick="window.location.href='#selected_topic'">{suggestion}</button>
+                    """,
+                    unsafe_allow_html=True,
                 )
                 if st.button(suggestion, key=f"suggestion_{i}"):
                     st.session_state.selected_text = suggestion
@@ -86,8 +99,6 @@ def main():
             if content:
                 st.session_state.editor_content = content
 
-
-# 실행
 if __name__ == "__main__":
     st.set_page_config(
         page_title="디지털 리터러시 with AI",
@@ -96,3 +107,4 @@ if __name__ == "__main__":
     )
     sidebar()
     main()
+
