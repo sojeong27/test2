@@ -1,9 +1,33 @@
-streamlit
-pyparsing==3.1.1
-streamlit-extras==0.3.4
-streamlit-quill
+# Streamlit 기본 패키지
+streamlit>=1.22.0
+
+# LangChain 관련 패키지
 langchain-core>=0.1.0
 langchain-openai>=0.1.0
 langchain-teddynote==0.0.9
 langchain_community==0.2.12
+
+# 환경 변수 로드 패키지
 python-dotenv>=0.21.0
+
+# 기타 필수 유틸리티
+glob2>=0.7
+pyyaml>=6.0
+pymupdf>=1.21.1
+
+# FAISS 라이브러리: CPU 기반 선택
+faiss-cpu
+
+# 텍스트 처리와 데이터 구조 관련
+unstructured>=0.3.0
+networkx>=2.5
+openpyxl>=3.0.0
+pyparsing==3.1.1
+
+# Streamlit 확장 라이브러리
+streamlit-extras>=0.3.4
+streamlit-quill>=0.1.3  # streamlit-quill 최신 버전 사용
+
+# 추가적으로 유용한 라이브러리
+streamlit-aggrid>=0.3.2  # 표와 데이터 정렬을 지원
+
