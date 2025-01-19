@@ -78,15 +78,10 @@ def main():
             <button class="copy-button" onclick="navigator.clipboard.writeText(`{st.session_state.editor_content}`)">
                 복사
             </button>
-            <p id="copy-result" style="color: green; margin-top: 10px;"></p>
             <script>
                 const copyButton = document.querySelector('.copy-button');
                 copyButton.addEventListener('click', () => {{
-                    const resultText = document.getElementById('copy-result');
-                    resultText.textContent = "내용이 클립보드에 복사되었습니다!";
-                    setTimeout(() => {{
-                        resultText.textContent = "";
-                    }}, 3000);
+                    alert('내용이 클립보드에 복사되었습니다!');
                 }});
             </script>
             """,
