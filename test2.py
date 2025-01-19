@@ -1,7 +1,6 @@
 import streamlit as st
 from streamlit_quill import st_quill
 from dotenv import load_dotenv
-import pyperclip
 import os
 
 # 환경 변수 로드
@@ -30,16 +29,37 @@ def main():
     if content:
         st.session_state.editor_content = content
 
-    # 복사 기능
+    # 복사 버튼 생성 (HTML + JavaScript)
     st.subheader("복사 기능")
     st.text_area("복사할 내용", st.session_state.editor_content, height=200, key="copy_area")
 
-    if st.button("복사"):
-        try:
-            pyperclip.copy(st.session_state.editor_content)
-            st.success("내용이 클립보드에 복사되었습니다!")
-        except pyperclip.PyperclipException:
-            st.error("복사 실패: 클립보드 접근 권한이 없습니다.")
+    st.markdown(
+        f"""
+        <button onclick="navigator.clipboard.writeText(`{st.session_state.editor_content}`)"
+        style="
+            background-color: #0055AA;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        ">
+            복사
+        </button>
+        <p id="copy-result" style="color: green; margin-top: 10px;"></p>
+        <script>
+            const copyButton = document.querySelector('button');
+            copyButton.addEventListener('click', () => {{
+                const resultText = document.getElementById('copy-result');
+                resultText.textContent = "내용이 클립보드에 복사되었습니다!";
+                setTimeout(() => {{
+                    resultText.textContent = "";
+                }}, 3000);
+            }});
+        </script>
+        """,
+        unsafe_allow_html=True,
+    )
 
 if __name__ == "__main__":
     st.set_page_config(
@@ -49,4 +69,5 @@ if __name__ == "__main__":
     )
     sidebar()
     main()
+
 
