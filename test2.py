@@ -23,6 +23,7 @@ def get_topic_details(selected_text):
     return response
 
 def sidebar():
+    """사이드바 렌더링"""
     st.markdown(
         """
         <style>
@@ -39,7 +40,8 @@ def sidebar():
 def main():
     st.title("디지털 리터러시 with AI")
 
-    col1, col2 = st.columns([1, 1])  # 1:1 화면 분할
+    # 화면 분할
+    col1, col2 = st.columns([1, 1])
 
     with col1:
         st.subheader("자료 탐색")
@@ -54,8 +56,6 @@ def main():
 
         if "suggestions" in st.session_state:
             st.markdown("**추천 주제**")
-
-            # 모든 버튼 유지 및 클릭된 버튼 강조
             for i, suggestion in enumerate(st.session_state.suggestions):
                 is_selected = (
                     "selected_text" in st.session_state
@@ -64,36 +64,22 @@ def main():
 
                 # 버튼 스타일 적용
                 button_style = (
-                    "background-color: #FFCDD2; color: black;"
+                    "background-color: #003366; color: white;"
                     if is_selected
                     else "background-color: #E6F3FF; color: black;"
                 )
 
-                if st.button(suggestion, key=f"suggestion_{i}"):
+                # Streamlit 버튼으로 생성
+                if st.button(suggestion, key=f"btn_{i}"):
                     st.session_state.selected_text = suggestion
                     st.session_state.topic_details = get_topic_details(suggestion)
-
-                st.markdown(
-                    f"""
-                    <div style="
-                        {button_style}
-                        border: 2px solid #003366;
-                        border-radius: 5px;
-                        padding: 10px;
-                        text-align: left;
-                        width: 100%;
-                        margin-bottom: 10px;
-                    ">
-                        {suggestion}
-                    </div>
-                    """,
-                    unsafe_allow_html=True,
-                )
 
     with col2:
         if "selected_text" in st.session_state and st.session_state.selected_text:
             st.subheader(f"선택한 주제: {st.session_state.selected_text}")
             details = st.session_state.topic_details
+
+            # Quill 에디터로 내용 표시
             content = st_quill(value=details, key="editor", html=False)
             if content:
                 st.session_state.editor_content = content
