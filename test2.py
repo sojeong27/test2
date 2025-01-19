@@ -10,7 +10,6 @@ load_dotenv()
 # ChatGPT 초기화
 llm = ChatOpenAI(model_name="gpt-4", temperature=0)
 
-# ChatGPT 결과 캐싱
 @st.cache_data
 def get_chatgpt_suggestions(input_text):
     """ChatGPT로부터 세부 주제 생성"""
@@ -78,13 +77,16 @@ def main():
 
                 # 버튼 스타일 적용
                 button_style = (
-                    "background-color: #003366; color: white;"
+                    f"background-color: #003366; color: white;"
                     if is_selected
                     else "background-color: #E6F3FF; color: black;"
                 )
-                st.markdown(
+
+                # 버튼 렌더링 및 클릭 이벤트 처리
+                if st.markdown(
                     f"""
-                    <button style="
+                    <button onclick="window.location.href='?selected={i}'" 
+                        style="
                         {button_style}
                         border: 2px solid #003366;
                         border-radius: 5px;
@@ -93,15 +95,12 @@ def main():
                         width: 100%;
                         margin-bottom: 10px;
                         cursor: pointer;
-                    " onclick="window.location.reload(true);">
+                    ">
                         {suggestion}
                     </button>
                     """,
                     unsafe_allow_html=True,
-                )
-
-                # 버튼 동작
-                if st.button(suggestion, key=f"btn_{i}"):
+                ):
                     st.session_state.selected_text = suggestion
                     with st.spinner("ChatGPT에서 내용을 가져오는 중..."):
                         st.session_state.topic_details = get_topic_details(suggestion)
