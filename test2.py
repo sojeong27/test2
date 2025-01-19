@@ -3,7 +3,6 @@ from streamlit_quill import st_quill
 from dotenv import load_dotenv
 from langchain.chat_models import ChatOpenAI
 import os
-import clipboard  # 클립보드 복사 라이브러리
 
 # 환경 변수 로드
 load_dotenv()
@@ -47,7 +46,41 @@ def sidebar():
         st.sidebar.write("로고 이미지를 찾을 수 없습니다.")
 
 def main():
-    st.markdown('<h1 style="text-align: center; color: #003366;">디지털 리터러시 with AI</h1>', unsafe_allow_html=True)
+    st.markdown(
+        """
+        <style>
+            .main-title {
+                text-align: center;
+                font-size: 36px;
+                color: #003366;
+                font-weight: bold;
+                margin-bottom: 20px;
+                text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+            }
+            .sub-title {
+                font-size: 22px;
+                color: #0055AA;
+                font-weight: bold;
+                margin-bottom: 15px;
+            }
+            .copy-button {
+                background-color: #0055AA;
+                color: white;
+                border: none;
+                padding: 10px 20px;
+                border-radius: 5px;
+                cursor: pointer;
+                transition: all 0.3s ease;
+            }
+            .copy-button:hover {
+                background-color: #003366;
+            }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    st.markdown('<div class="main-title">디지털 리터러시 with AI</div>', unsafe_allow_html=True)
 
     col1, col2 = st.columns([2, 3])
 
@@ -59,13 +92,14 @@ def main():
         st.session_state.topic_details = ""
 
     with col1:
+        st.markdown('<div class="sub-title">자료 탐색</div>', unsafe_allow_html=True)
         input_topic = st.text_input("학습 주제 입력", placeholder="학습 주제를 입력하세요")
 
         if st.button("주제 생성"):
             if not input_topic.strip():
                 st.warning("학습 주제를 입력하세요.")
             else:
-                with st.spinner("데이터를 생성 중입니다..."):
+                with st.spinner("ChatGPT에서 데이터를 가져오는 중..."):
                     st.session_state.suggestions = get_chatgpt_suggestions(input_topic)
                     st.session_state.selected_text = None
 
@@ -86,12 +120,26 @@ def main():
             if content:
                 st.session_state.editor_content = content
 
-            if st.button("복사"):
-                try:
-                    clipboard.copy(st.session_state.editor_content)
-                    st.success("내용이 클립보드에 복사되었습니다.")
-                except Exception as e:
-                    st.error(f"복사 실패: {e}")
+            # 복사 버튼 생성 (JavaScript 기반)
+            st.markdown(
+                f"""
+                <button class="copy-button" onclick="navigator.clipboard.writeText(`{st.session_state.editor_content}`)">
+                    복사
+                </button>
+                <p id="copy-result" style="color: green; margin-top: 10px;"></p>
+                <script>
+                    const copyButton = document.querySelector('.copy-button');
+                    copyButton.addEventListener('click', () => {{
+                        const resultText = document.getElementById('copy-result');
+                        resultText.textContent = "내용이 클립보드에 복사되었습니다!";
+                        setTimeout(() => {{
+                            resultText.textContent = "";
+                        }}, 3000);
+                    }});
+                </script>
+                """,
+                unsafe_allow_html=True,
+            )
 
 if __name__ == "__main__":
     st.set_page_config(page_title="디지털 리터러시 with AI", layout="wide")
