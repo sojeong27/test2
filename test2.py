@@ -34,18 +34,10 @@ def sidebar():
                 background-color: #031924;
                 padding-top: 20px;
             }
-            [data-testid="stSidebar"] .sidebar-title {
-                color: #FFFFFF;
-                font-size: 18px;
-                font-weight: bold;
-                text-align: center;
-                margin-bottom: 20px;
-            }
         </style>
         """,
         unsafe_allow_html=True,
     )
-    st.sidebar.markdown('<div class="sidebar-title">디지털 리터러시</div>', unsafe_allow_html=True)
     try:
         st.sidebar.image("images/logo-removebg.png", use_container_width=True)
     except FileNotFoundError:
@@ -135,19 +127,16 @@ def main():
         if st.session_state.suggestions:
             st.markdown('<div class="sub-title">추천 주제</div>', unsafe_allow_html=True)
 
-            # 버튼 스타일링
+            # 버튼 생성 및 상태 관리
             for i, suggestion in enumerate(st.session_state.suggestions):
                 is_selected = st.session_state.selected_text == suggestion
-                selected_class = "selected" if is_selected else ""
 
-                # HTML 버튼 생성
-                button_html = f"""
-                    <div class="custom-button {selected_class}" onclick="window.location.href='?selected={i}'">
-                        {suggestion}
-                    </div>
-                """
-                st.markdown(button_html, unsafe_allow_html=True)
-                if is_selected:
+                # Streamlit 버튼 사용
+                if st.button(
+                    suggestion,
+                    key=f"suggestion_{i}",
+                    help="이 주제를 선택합니다.",
+                ):
                     st.session_state.selected_text = suggestion
                     st.session_state.topic_details = get_topic_details(suggestion)
 
@@ -175,6 +164,4 @@ if __name__ == "__main__":
     )
     sidebar()
     main()
-
-
 
