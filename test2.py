@@ -3,7 +3,6 @@ from streamlit_quill import st_quill
 from dotenv import load_dotenv
 from langchain.chat_models import ChatOpenAI
 import os
-import pyperclip  # 클립보드 복사 모듈
 
 # 환경 변수 로드
 load_dotenv()
@@ -13,7 +12,7 @@ llm = ChatOpenAI(model_name="gpt-4", temperature=0)
 
 def get_chatgpt_suggestions(input_text):
     """ChatGPT로부터 세부 주제 생성"""
-    prompt = f"'{input_text}'와 관련된 5개의 세부 주제를 간결하게 생성해 주세요."
+    prompt = f"'{input_text}'와 관련된 5개의 하위 주제를 간결하게 생성해 주세요. 6학년 교육과정에 있는 내용으로 생성해 주세요."
     response = llm.predict(prompt)
     return [line.strip() for line in response.split("\n") if line.strip()][:5]
 
@@ -128,12 +127,16 @@ def main():
                 st.session_state.editor_content = content
 
             # 복사 버튼 생성
-            if st.button("복사"):
-                try:
-                    pyperclip.copy(st.session_state.editor_content)
-                    st.success("내용이 클립보드에 복사되었습니다.")
-                except pyperclip.PyperclipException as e:
-                    st.error(f"복사 실패: {str(e)}")
+            st.markdown(
+                f"""
+                <button onclick="navigator.clipboard.writeText(`{st.session_state.editor_content}`)" 
+                        style="background-color: #0055AA; color: white; padding: 10px 20px; border: none; 
+                               border-radius: 5px; cursor: pointer;">
+                    복사
+                </button>
+                """,
+                unsafe_allow_html=True,
+            )
 
 if __name__ == "__main__":
     st.set_page_config(
@@ -143,3 +146,4 @@ if __name__ == "__main__":
     )
     sidebar()
     main()
+
