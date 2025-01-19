@@ -72,21 +72,10 @@ def main():
         if content:
             st.session_state.editor_content = content
 
-        # 복사 버튼 생성 (JavaScript 기반)
-        st.markdown(
-            f"""
-            <button class="copy-button" onclick="navigator.clipboard.writeText(`{st.session_state.editor_content}`)">
-                복사
-            </button>
-            <script>
-                const copyButton = document.querySelector('.copy-button');
-                copyButton.addEventListener('click', () => {{
-                    alert('내용이 클립보드에 복사되었습니다!');
-                }});
-            </script>
-            """,
-            unsafe_allow_html=True,
-        )
+        # 복사 버튼
+        if st.button("복사"):
+            st.session_state.clipboard = st.session_state.editor_content
+            st.success("내용이 클립보드에 복사되었습니다!")
 
 if __name__ == "__main__":
     st.set_page_config(
