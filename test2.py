@@ -24,71 +24,11 @@ def get_topic_details(selected_text):
 
 def sidebar():
     """사이드바 렌더링"""
-    st.markdown(
-        """
-        <style>
-            [data-testid="stSidebar"] {
-                background: linear-gradient(45deg, #003366, #0055AA);
-                padding-top: 20px;
-                color: white;
-            }
-            [data-testid="stSidebar"] h2 {
-                color: #E6F3FF;
-                text-align: center;
-                font-weight: bold;
-            }
-        </style>
-        """,
-        unsafe_allow_html=True,
-    )
-    try:
-        st.sidebar.image(
-            "images/logo-removebg.png",
-            use_container_width=True,
-            caption="AI 디지털 리터러시",
-        )
-    except FileNotFoundError:
-        st.sidebar.write("로고 이미지를 찾을 수 없습니다.")
+    st.sidebar.title("디지털 리터러시 with AI")
+    st.sidebar.info("AI를 활용한 학습 주제 탐색")
 
 def main():
-    st.markdown(
-        """
-        <style>
-            .main-title {
-                text-align: center;
-                font-size: 36px;
-                color: #003366;
-                font-weight: bold;
-                margin-bottom: 20px;
-                text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
-            }
-            .sub-title {
-                font-size: 22px;
-                color: #0055AA;
-                font-weight: bold;
-                margin-bottom: 15px;
-            }
-            .copy-button {
-                background-color: #0055AA;
-                color: white;
-                border: none;
-                padding: 10px 20px;
-                border-radius: 5px;
-                cursor: pointer;
-                transition: all 0.3s ease;
-            }
-            .copy-button:hover {
-                background-color: #003366;
-            }
-        </style>
-        """,
-        unsafe_allow_html=True,
-    )
-
-    st.markdown('<div class="main-title">디지털 리터러시 with AI</div>', unsafe_allow_html=True)
-
-    # 화면 분할
-    col1, col2 = st.columns([2, 3])
+    st.title("디지털 리터러시 with AI")
 
     # 상태 초기화
     if "suggestions" not in st.session_state:
@@ -98,66 +38,52 @@ def main():
     if "topic_details" not in st.session_state:
         st.session_state.topic_details = ""
 
-    with col1:
-        st.markdown('<div class="sub-title">자료 탐색</div>', unsafe_allow_html=True)
-        input_topic = st.text_input("학습 주제 입력", placeholder="학습 주제를 입력하세요")
+    # 입력창과 버튼
+    input_topic = st.text_input("학습 주제 입력", placeholder="학습 주제를 입력하세요")
+    if st.button("주제 생성"):
+        if not input_topic.strip():
+            st.warning("학습 주제를 입력하세요.")
+        else:
+            st.session_state.suggestions = get_chatgpt_suggestions(input_topic)
+            st.session_state.selected_text = None
 
-        if st.button("주제 생성", help="학습 주제에 따라 추천 주제를 생성합니다"):
-            if not input_topic.strip():
-                st.warning("학습 주제를 입력하세요.")
-            else:
-                with st.spinner("ChatGPT에서 데이터를 가져오는 중..."):
-                    st.session_state.suggestions = get_chatgpt_suggestions(input_topic)
-                    st.session_state.selected_text = None
+    # 추천 주제 버튼
+    if st.session_state.suggestions:
+        st.subheader("추천 주제")
+        for i, suggestion in enumerate(st.session_state.suggestions):
+            if st.button(suggestion, key=f"suggestion_{i}"):
+                st.session_state.selected_text = suggestion
+                st.session_state.topic_details = get_topic_details(suggestion)
 
-        if st.session_state.suggestions:
-            st.markdown('<div class="sub-title">추천 주제</div>', unsafe_allow_html=True)
+    # 선택된 주제 내용 표시
+    if st.session_state.selected_text:
+        st.subheader(f"선택한 주제: {st.session_state.selected_text}")
+        details = st.session_state.topic_details
+        content = st_quill(value=details, key="editor", html=False)
+        if content:
+            st.session_state.editor_content = content
 
-            # 버튼 생성 및 상태 관리
-            for i, suggestion in enumerate(st.session_state.suggestions):
-                if st.button(
-                    suggestion,
-                    key=f"suggestion_{i}",
-                    help="이 주제를 선택합니다.",
-                ):
-                    st.session_state.selected_text = suggestion
-                    st.session_state.topic_details = get_topic_details(suggestion)
-
-    with col2:
-        if st.session_state.selected_text:
-            st.markdown('<div class="sub-title">선택한 주제</div>', unsafe_allow_html=True)
-            st.markdown(
-                f"<div class='content-box'><strong>{st.session_state.selected_text}</strong></div>",
-                unsafe_allow_html=True,
-            )
-
-            details = st.session_state.topic_details
-
-            # Quill 에디터로 내용 표시
-            content = st_quill(value=details, key="editor", html=False)
-            if content:
-                st.session_state.editor_content = content
-
-            # 복사 버튼 생성 (JavaScript 기반)
-            st.markdown(
-                f"""
-                <button class="copy-button" onclick="navigator.clipboard.writeText(`{st.session_state.editor_content}`)">
-                    복사
-                </button>
-                <p id="copy-result" style="color: green; margin-top: 10px;"></p>
-                <script>
-                    const copyButton = document.querySelector('.copy-button');
-                    copyButton.addEventListener('click', () => {{
-                        const resultText = document.getElementById('copy-result');
-                        resultText.textContent = "내용이 클립보드에 복사되었습니다!";
-                        setTimeout(() => {{
-                            resultText.textContent = "";
-                        }}, 3000);
-                    }});
-                </script>
-                """,
-                unsafe_allow_html=True,
-            )
+        # 복사 버튼 구현 (HTML + JavaScript)
+        st.markdown(
+            f"""
+            <button onclick="navigator.clipboard.writeText(`{st.session_state.editor_content}`)" 
+                    style="background-color: #0055AA; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer;">
+                복사
+            </button>
+            <p id="copy-result" style="color: green; margin-top: 10px;"></p>
+            <script>
+                const copyButton = document.querySelector('button');
+                copyButton.addEventListener('click', () => {{
+                    const resultText = document.getElementById('copy-result');
+                    resultText.textContent = "내용이 클립보드에 복사되었습니다!";
+                    setTimeout(() => {{
+                        resultText.textContent = "";
+                    }}, 3000);
+                }});
+            </script>
+            """,
+            unsafe_allow_html=True,
+        )
 
 if __name__ == "__main__":
     st.set_page_config(
@@ -167,5 +93,4 @@ if __name__ == "__main__":
     )
     sidebar()
     main()
-
 
