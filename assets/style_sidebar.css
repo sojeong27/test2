@@ -1,0 +1,60 @@
+[data-testid="stSidebar"] {
+    background-color: #031924; /* 원하는 사이드바 배경색 */
+}
+
+/* 유저 버튼 스타일링 */
+.element-container:has(#button-user) + div button {
+    background-color: #002966;
+    color: white;
+    border: 1px solid #002966;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+/* 유저 버튼 스타일링 */
+.element-container:has(#button-alert) + div button {
+    background-color: #002966;
+    color: white;
+    border: 1px solid #002966;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+/* 메뉴얼/로그아웃 버튼 */
+.element-container:has(#button-manual) + div button,
+.element-container:has(#button-logout) + div button {
+    background-color: #002966;
+    color: white;
+    border: 1px solid #002966;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    width: 125px;
+}
+
+
+/* 기본 버튼 스타일링 */
+.element-container:has(#button-manu) + div button,
+button.st-emotion-cache-19rxjzo {
+    background-color: #031924 !important; /* 우선순위 높임 */
+    color: #e6f3ff;
+    width: 100%;
+    margin: -10px 0;
+    padding: 5px;
+    border: 1px solid #002966;
+    border-radius: 5px;
+    text-align: left;
+    transition: all 0.3s ease;
+}
+
+/* Hover 상태 */
+.element-container:has(#button-manu) + div button:hover,
+button.st-emotion-cache-19rxjzo:hover {
+    background-color: #052e3d !important;
+    cursor: pointer;
+}
+
+/* 버튼이 눌렸을 때 (active 상태) */
+.element-container:has(#button-manu) + div button:active,
+button.st-emotion-cache-19rxjzo:active {
+    background-color: #014f75 !important; /* 원하는 눌림 상태 배경색 */
+}
