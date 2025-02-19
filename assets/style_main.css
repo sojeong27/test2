@@ -1,0 +1,184 @@
+/* 유저 버튼 스타일링 */
+.element-container:has(#info-cmd) + div button {
+    background-color: #002966;
+    color: white;
+    border: 1px solid #002966;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+
+/* 추천 키워드 */
+.info-cmd {
+    background-color: #002966 !important;  /* Force the background color */
+    color: white !important;                /* Force the text color */
+    padding: 5px;
+    border: 1px solid #002966;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    width: 100%;
+}
+
+
+/* 학년 선택" */
+.element-container:has(#selectbox-grade) + div [data-baseweb="select"] {
+    background-color: #f0f0f0 !important;  /* Desired background color */
+    border: 1px solid #002966 !important;    /* Border styling */
+    border-radius: 4px;                       /* Rounded corners */
+    color: #002966 !important;                /* Text color */
+    padding: 5px;
+    transition: all 0.3s ease;
+    margin-top: -22px;     /* Moves the select box 5px down */
+}
+
+.element-container:has(#selectbox-grade) + div [data-baseweb="select"] * {
+    color: #002966 !important;
+}
+
+/* 교과 선택" */
+.element-container:has(#selectbox-curriculum) + div [data-baseweb="select"] {
+    background-color: #f0f0f0 !important;  /* Desired background color */
+    border: 1px solid #002966 !important;    /* Border styling */
+    border-radius: 4px;                       /* Rounded corners */
+    color: #002966 !important;                /* Text color */
+    padding: 5px;
+    transition: all 0.3s ease;
+    margin-top: -22px;     /* Moves the select box 5px down */
+}
+
+.element-container:has(#selectbox-curriculum) + div [data-baseweb="select"] * {
+    color: #002966 !important;
+}
+
+
+/* 추천 키워드 버튼 */
+.element-container:has(#keyword-button) + div button {
+    background-color: #E6F3FF;
+    color: black;
+    border: 3px solid #003366;
+    padding: 10px;
+    margin: 2px 0;
+    font-size: 18px;
+    text-align: left;
+    width: 100%;
+    white-space: normal;
+    border-radius: 4px;
+    transition: all 0.3s;
+}
+
+.element-container:has(#keyword-button) + div button:hover {
+    background-color: #CCE5FF;
+    border-color: #003366;
+}
+
+.element-container:has(.selected-keyword) + div button {
+    border: 3px solid #003366;
+    padding: 10px;
+    margin: 2px 0;
+    font-size: 18px;
+    text-align: left;
+    width: 100%;
+    white-space: normal;
+    border-radius: 4px;
+    transition: all 0.3s;
+    background-color: #003366 !important;
+    border-color: #003366 !important;
+    color: #a5adb7 !important;
+    font-weight: bold;
+}
+
+
+/* 선택된 키워드 제시 */
+.selected-text {
+    font-size: 18px;             /* Adjust font size as needed */
+    font-weight: bold;           /* Bold text */
+    color: #0047AB;              /* Text color */
+    background-color: #f0f0f0;     /* Background color */
+    border: 1px solid #ccc;      /* Border */
+    border-radius: 4px;          /* Rounded corners */
+    padding: 10px;               /* Padding inside the box */
+    margin-top: 10px;            /* Margin to separate from other elements */
+    transition: all 0.3s ease;   /* Smooth transitions (if needed) */
+}
+
+
+/* Styling for the "요약" button */
+.element-container:has(#button-create) + div button,
+button#create_button {  /* fallback selector if needed */
+    background-color: #031924 !important;
+    color: #e6f3ff !important;
+    border: 1px solid #002966;
+    border-radius: 5px;
+    padding: 10px;
+    margin: 5px;
+    text-align: center;
+    transition: background-color 0.3s ease;
+}
+
+/* Hover effect for "요약" button */
+.element-container:has(#button-create) + div button:hover,
+button#create_button:hover {
+    background-color: #052e3d !important;
+    cursor: pointer;
+}
+
+/* Styling for the "요약" button */
+.element-container:has(#button-summary) + div button,
+button#summary_button {  /* fallback selector if needed */
+    background-color: #031924 !important;
+    color: #e6f3ff !important;
+    border: 1px solid #002966;
+    border-radius: 5px;
+    padding: 10px;
+    margin: 5px;
+    text-align: center;
+    transition: background-color 0.3s ease;
+}
+
+/* Hover effect for "요약" button */
+.element-container:has(#button-summary) + div button:hover,
+button#summary_button:hover {
+    background-color: #052e3d !important;
+    cursor: pointer;
+}
+
+/* Styling for the "복사" button */
+.element-container:has(#button-copy) + div button,
+button#copy_button {
+    background-color: #002966 !important;
+    color: white !important;
+    border: 1px solid #002966;
+    border-radius: 5px;
+    padding: 10px;
+    margin: 5px;
+    text-align: center;
+    transition: background-color 0.3s ease;
+}
+
+/* Hover effect for "복사" button */
+.element-container:has(#button-copy) + div button:hover,
+button#copy_button:hover {
+    background-color: #003f5e !important;
+    cursor: pointer;
+}
+
+/* Styling for the "출력" button */
+.element-container:has(#button-print) + div button,
+button#print_button {
+    background-color: #003366 !important;
+    color: #e6f3ff !important;
+    border: 1px solid #003366;
+    border-radius: 5px;
+    padding: 10px;
+    margin: 5px;
+    text-align: center;
+    transition: background-color 0.3s ease;
+}
+
+/* Hover effect for "출력" button */
+.element-container:has(#button-print) + div button:hover,
+button#print_button:hover {
+    background-color: #004f78 !important;
+    cursor: pointer;
+}
+
