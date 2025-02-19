@@ -1,0 +1,13 @@
+streamlit>=1.22.0
+langchain-core>=0.1.0
+langchain-openai>=0.1.0
+langchain-teddynote==0.0.9
+langchain_community==0.2.12
+python-dotenv>=0.21.0
+glob2>=0.7
+pyyaml>=6.0
+pymupdf>=1.21.1
+faiss-cpu
+unstructured>=0.3.0
+networkx>=2.5
+openpyxl>=3.0.0
