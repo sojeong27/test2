@@ -560,7 +560,7 @@ def sidebar():
     # 사용자 정보 버튼으로 변경
     sidebar_col1.markdown('<span id="button-user"></span>', unsafe_allow_html=True)
     sidebar_col1.button(
-        "👋 최소정정 님",
+        "👋 최소정 님",
         key="user_button",
         help="사용자 프로필 메뉴",  # 툴팁 추가
         use_container_width=True
@@ -738,7 +738,7 @@ def main_content():
                 st.session_state.editor_content = content
 
                 # Create three columns to hold the buttons in one row.
-                col1, col2, col3, col4, col5, col6 = st.columns([0.2, 0.5, 0.5, 0.5, 0.5, 0.2])
+                col1, col2, col3, col4, col5, col6 = st.columns([0.2, 0.5, 0.5, 0.5, 0.2])
 
                 with col2:
                     # Insert a marker before the button so that we can style it via CSS.
