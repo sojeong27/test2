@@ -253,6 +253,30 @@ def create_report_prompt(grade, selected_subject, topic):
     return ChatPromptTemplate.from_template(prompt_template)
 
 #@st.cache_data(max_entries=32)
+def generate_question(grade, selected_subject, topic):
+    prompt = create_question_prompt(grade, selected_subject, topic)
+    # Build a simple chain: prompt | llm | output parser
+    chain = prompt | llm | JsonOutputParser()
+    response = chain.invoke({})
+    return response
+
+    #@st.cache_data(max_entries=32)
+def create_question_prompt(grade, selected_subject, topic):
+    prompt_template = f"""
+    초등학생 {grade}학년 수준에서 "{selected_subject}" 과목의 "{topic}"에 관련된 탐구 질문을 10개 만들어주세요.
+
+    [탐구 질문 형식]
+    1. 탐구 질문 1
+    2. 탐구 질문 2
+    3. 탐구 질문 3
+    4. 탐구 질문 4
+
+    위 형식을 참고하여 탐구 질문을 제시하되, 각각의 값들을 JSON으로 받아와주세요.
+    주어진 형식과 동일한 JSON 형태로만 응답하세요. JSON 외의 추가 텍스트는 출력하지 마세요.
+    """
+    return ChatPromptTemplate.from_template(prompt_template)
+
+#@st.cache_data(max_entries=32)
 def generate_report(grade, selected_subject, topic):
     prompt = create_report_prompt(grade, selected_subject, topic)
     # Build a simple chain: prompt | llm | output parser
@@ -536,7 +560,7 @@ def sidebar():
     # 사용자 정보 버튼으로 변경
     sidebar_col1.markdown('<span id="button-user"></span>', unsafe_allow_html=True)
     sidebar_col1.button(
-        "👋 강지원 님",
+        "👋 최소정정 님",
         key="user_button",
         help="사용자 프로필 메뉴",  # 툴팁 추가
         use_container_width=True
@@ -557,12 +581,12 @@ def sidebar():
         st.session_state.current_page = "Research Report"  # 기본 페이지
 
     # 버튼 생성
-    buttons = ["📊 NOK AI", 
-            "📝 Research Report", 
-            "📓 내 노트", 
+    buttons = ["📊 탐구 질문 만들기", 
+            "📝 자료 수집·탐색하기", 
+            "📓 자료 분석하기", 
             "🤝 공유 노트", 
-            "👨‍🎓 학생 관리", 
-            "🔍 탐구 라브러리", 
+            "👨‍🎓 내 노트", 
+            "🔍 탐구 라이브러리", 
             "📄 문서 서식", 
             "❔ FAQ"
             ]
@@ -592,9 +616,9 @@ def main_content():
         st.session_state.editor_content = ""
 
     with main_center:
-        if st.session_state.current_page == "📝 Research Report":
-            st.subheader("Research Report")
-            st.write("수업, 진료설계에 도움이 되는 주제와 보고서를 생성합니다.")
+        if st.session_state.current_page == "📝 자료 수집·탐색하기":
+            st.subheader("자료 수집·탐색하기")
+            st.write("질문 해결을 위한 자료를 수집·탐색합니다.")
             
             # 세로 구분선
             with center:
@@ -779,11 +803,175 @@ def main_content():
                             st.warning("출력할 내용이 없습니다. 먼저 보고서를 생성해 주세요.")
 
 
+        elif st.session_state.current_page == "📊 탐구 질문 만들기":
+            st.subheader("탐구 질문 만들기")
+            st.write("학생들이 스스로 탐구하고 싶은 질문을 만듭니다.")
 
+             # 세로 구분선
+            with center:
+                st.markdown('<div class="vertical-line"></div>', unsafe_allow_html=True)
 
-        elif st.session_state.current_page == "📊 NOK AI":
-            st.subheader("NOK AI")
-            st.write("인공지능 분석 기능이 준비 중입니다.")
+            # 키워드 섹션
+            with keyword_section:
+                keyword_col1, keyword_col2, keyword_col3, keyword_col4 = st.columns([0.2, 0.2, 0.2, 0.3])
+                keyword_col1.markdown('<div class="info-cmd">추천 키워드</div>', unsafe_allow_html=True)
+
+                keyword_col2.markdown('<span id="selectbox-grade"></span>', unsafe_allow_html=True)
+                keyword_col2.selectbox(
+                    "학년", 
+                    ["1학년", "2학년", "3학년", "4학년", "5학년", "6학년"], 
+                    label_visibility="collapsed",
+                    key='selected_grade'
+                )
+                
+                keyword_col3.markdown('<span id="selectbox-curriculum"></span>', unsafe_allow_html=True)
+                keyword_col3.selectbox(
+                    "교과선택", 
+                    ["국어", "사회", "과학"], 
+                    label_visibility="collapsed",
+                    key='selected_subject'
+                )
+                                
+                keyword_col4.text_input(
+                    "키워드 입력", 
+                    placeholder="키워드를 입력하세요", 
+                    label_visibility="collapsed",
+                    key='keyword_input'
+                )
+
+                add_vertical_space(1)
+                
+                # 키워드 버튼 생성
+                if 'selected_text' not in st.session_state:
+                    st.session_state.selected_text = None
+
+                # RAG 결과를 담을 리스트 초기화
+                if 'keywords' not in st.session_state:
+                    st.session_state.keywords = []
+                
+                if st.session_state.keyword_input:
+                    st.session_state.keywords = generate_topics(st.session_state.selected_grade, st.session_state.selected_subject, st.session_state.keyword_input)
+                
+                if 'keywords' in st.session_state and st.session_state.keywords:
+                    for idx, keyword in enumerate(st.session_state.keywords):
+                        is_selected = keyword == st.session_state.selected_text
+                        if is_selected:
+                            st.markdown('<span class="selected-keyword"></span>', unsafe_allow_html=True)
+                        else:
+                            st.markdown('<span id="keyword-button"></span>', unsafe_allow_html=True)
+
+                        button_label = f"**{keyword}**" if is_selected else keyword
+                        
+                        # 콜백 함수 추가
+                        def select_keyword(keyword):
+                            if st.session_state.selected_text == keyword:
+                                st.session_state.selected_text = None
+                            else:
+                                st.session_state.selected_text = keyword
+
+                        # if st.button(button_label, key=f"kw_{idx}", help=None):
+                        #     if is_selected:
+                        #         st.session_state.selected_text = None
+                        #     else:
+                        #         st.session_state.selected_text = keyword
+    #                        st.rerun()
+                        # 버튼 클릭 핸들러
+                        if st.button(button_label, 
+                                    key=f"kw_{idx}", 
+                                    help=None,
+                                    # 버튼 클릭 시 부분 리렌더링 방지
+                                    on_click=lambda k=keyword: select_keyword(k)):
+                            pass
+                    
+
+            # 문서 편집기 섹션
+            with document_section:
+                if st.session_state.selected_text:
+                    st.markdown(f'<div class="selected-text">{st.session_state.selected_text}</div>', unsafe_allow_html=True)
+                    
+                if 'editor_key' not in st.session_state:
+                    st.session_state.editor_key = 0
+
+                
+                if st.session_state.editor_content is not None and isinstance(st.session_state.editor_content, dict):
+                    default_text = f"""
+                    <style>
+                        .quill-container {{
+                            margin: 0;  /* 여백 제거 */
+                            padding: 0; /* 패딩 제거 */
+                        }}
+                    </style>
+                    1. 주제
+                    {st.session_state.editor_content.get('주제', '')}
+
+                    2. 조사 개요
+                    {st.session_state.editor_content.get('조사 개요', '')}
+
+                    3. 조사 내용
+                    {st.session_state.editor_content.get('조사 내용', '')}
+
+                    4. 출처
+                    {st.session_state.editor_content.get('출처', '')}
+                    """
+                else:
+                    default_text = "편집할 내용이 없습니다. 먼저 질문을 생성해 주세요."
+                # 에디터 초기화
+                content = st_quill(
+                    value=default_text,
+                    html=True,
+                    key=f'quill_editor_{st.session_state.editor_key}'  # 동적 키 적용
+                )
+                
+                st.session_state.editor_content = content
+
+                # Create three columns to hold the buttons in one row.
+                col1, col2, col4, col5, col6 = st.columns([0.2, 0.5, 0.5, 0.5, 0.5, 0.2])
+
+                with col2:
+                    # Insert a marker before the button so that we can style it via CSS.
+                    st.markdown('<span id="button-summary"></span>', unsafe_allow_html=True)
+                    if st.button("생성", key="create_button"):
+                        st.session_state.editor_content = generate_question(st.session_state.selected_grade, st.session_state.selected_subject, st.session_state.selected_text)
+                        st.session_state.editor_key += 1  # 키 값 변경으로 컴포넌트 강제 리렌더링
+                        st.rerun()
+
+                with col4:
+                    st.markdown('<span id="button-copy"></span>', unsafe_allow_html=True)
+                    if st.button("복사", key="copy_button"):
+                        # st_quill 위젯의 최신 내용을 직접 사용 (content 변수에 저장된 값을 활용)
+                        if content:
+                            # HTML 내용을 예쁜 문자열로 변환
+                            formatted_text = format_copied_text(content)
+#                            pyperclip.copy(formatted_text)
+                            copy_to_clipboard_js(formatted_text)
+                            st.success("클립보드에 복사되었습니다!")
+                        else:
+                            st.warning("복사할 내용이 없습니다.")
+
+                with col5:
+                    st.markdown('<span id="button-print"></span>', unsafe_allow_html=True)
+                    if st.button("출력", key="print_button"):
+                        
+                        if st.session_state.editor_content:
+                            # 엑셀 및 PDF 파일 생성
+                            excel_path, pdf_path = create_pdf_from_excel_template(st.session_state.editor_content)
+
+                            # PDF 파일 다운로드 링크 제공
+                            with open(pdf_path, "rb") as f:
+                                st.download_button(
+                                    label="PDF 다운로드",
+                                    data=f,
+                                    file_name="report.pdf",
+                                    mime="application/pdf"
+                                )
+
+                            # 임시 파일 삭제
+                            os.remove(excel_path)
+                            os.remove(pdf_path)
+
+                            st.success("PDF 파일이 생성되었습니다. 다운로드 버튼을 클릭하세요.")
+                        else:
+                            st.warning("출력할 내용이 없습니다. 먼저 보고서를 생성해 주세요.")
         
         elif st.session_state.current_page == "📓 내 노트":
             st.subheader("내 노트")
@@ -792,7 +980,7 @@ def main_content():
 def main():
     """메인 앱 설정"""
     st.set_page_config(
-        page_title="NOK(Research report)",
+        page_title="AI 활용 질문 기반 수업",
         page_icon="🔎",
         layout="wide",
         initial_sidebar_state="expanded",
