@@ -249,23 +249,24 @@ def create_question_prompt(grade, selected_subject, topic):
 
 def analyze_text(text):
     prompt = ChatPromptTemplate.from_template("""
-    다음 글을 분석해 주세요.
+다음 글을 분석해 주세요.
 
-    1. 핵심 내용 정리
-    2. 느낀 점
-    3. 궁금한 점
+1. 핵심 내용 정리
+2. 느낀 점
+3. 궁금한 점
 
-    아래 JSON 형식으로 출력해 주세요:
+아래 JSON 형식으로 출력해 주세요:
 
-    {
-      "핵심 내용": "...",
-      "느낀 점": "...",
-      "궁금한 점": "..."
-    }
+{
+  "핵심 내용": "...",
+  "느낀 점": "...",
+  "궁금한 점": "..."
+}
 
-    분석할 글:
-    {input}
-    """)
+분석할 글:
+{input}
+""")  
+
     chain = prompt | llm | JsonOutputParser()
     response = chain.invoke({"input": text})
     return response
