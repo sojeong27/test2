@@ -1038,7 +1038,6 @@ def main_content():
                         with st.spinner("분석 중입니다..."):
                             analysis_result = analyze_text(user_input)
                             st.session_state.analysis_result = analysis_result
-                            st.session_state.analysis_mindmap_path = draw_mindmap_from_text(user_input)
                             st.success("분석이 완료되었습니다.")
         
             with col3:
