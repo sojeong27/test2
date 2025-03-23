@@ -232,7 +232,6 @@ def create_analysis_prompt():
     각 질문은 초등학생 눈높이에 맞춰 다음과 같은 주제를 중심으로 작성해 주세요:
     1. 이 보고서에서 가장 중요한 내용은 무엇일까?
     2. 핵심 주제에 대해 구체적으로 이해를 도와주는 질문
-    3. 이 주제가 왜 중요한지에 대한 질문
 
     아래 형식의 JSON으로 출력해 주세요:
 
@@ -277,15 +276,23 @@ def format_analysis_result(result_dict):
 def analyze_text(text):
     prompt = create_analysis_prompt()
     chain = prompt | llm | JsonOutputParser()
-    raw_result = chain.invoke({"본문": text})
 
-    # 기존에는 {"1": "내용", "2": "내용"} 형태였다면
-    # 아래처럼 구조를 바꿔줍니다.
+    response = chain.invoke({"본문": text})
+    
+    # response 예시: {"1": {"question": "...", "answer": "..."}, ...}
     structured_result = {}
-    for i, (key, value) in enumerate(raw_result.items(), start=1):
-        structured_result[str(i)] = {
-            "question": key.strip(),
-            "answer": value.strip()
+
+    for key, value in response.items():
+        if isinstance(value, dict):  # 올바른 구조인 경우
+            q = value.get("question", "").strip()
+            a = value.get("answer", "").strip()
+        else:  # value가 문자열일 경우 대비 (예외 처리)
+            q = ""
+            a = str(value).strip()
+        
+        structured_result[key] = {
+            "question": q,
+            "answer": a
         }
 
     return structured_result
