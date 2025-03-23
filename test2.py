@@ -893,9 +893,9 @@ def main_content():
                 st.info("먼저 키워드를 선택하고 '질문 생성' 버튼을 눌러주세요.")
 
             
-        elif st.session_state.current_page == "📓 내 노트":
-            st.subheader("내 노트")
-            st.write("개인 노트 관리 기능이 준비 중입니다.")
+            elif st.session_state.current_page == "📓 내 노트":
+                st.subheader("내 노트")
+                st.write("개인 노트 관리 기능이 준비 중입니다.")
 
 def main():
     """메인 앱 설정"""
