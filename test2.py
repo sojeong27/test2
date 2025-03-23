@@ -949,6 +949,61 @@ def main_content():
                             copy_to_clipboard_js(copy_text)
                             st.success("질문이 복사되었습니다!")
 
+        elif st.session_state.current_page == "📓 자료 분석하기":
+            st.subheader("📓 자료 분석하기")
+            st.write("이전에 복사한 내용을 붙여넣고 분석해보세요.")
+
+            st.markdown("#### 📋 복사한 내용 붙여넣기")
+            input_text = st.text_area(
+                "여기에 복사한 텍스트를 붙여넣으세요.",
+                placeholder="예: 주제, 조사 개요, 조사 내용 등을 복사해 넣으세요.",
+                key="analysis_input",
+                height=200,
+                label_visibility="collapsed"
+            )
+
+            col1, col2, col3 = st.columns([0.3, 0.3, 0.4])
+            with col2:
+                if st.button("🔍 분석"):
+                    if input_text.strip() == "":
+                        st.warning("붙여넣은 내용이 없습니다.")
+                    else:
+                        # 간단한 분석 로직 예시: 항목별 줄 수 세기
+                        lines = input_text.splitlines()
+                        categories = {
+                            "주제": [],
+                            "조사 개요": [],
+                            "조사 내용": [],
+                            "출처": [],
+                        }
+                        current_key = None
+                        for line in lines:
+                            line = line.strip()
+                            if line.startswith("1. 주제"):
+                                current_key = "주제"
+                            elif line.startswith("2. 조사 개요"):
+                                current_key = "조사 개요"
+                            elif line.startswith("3. 조사 내용"):
+                                current_key = "조사 내용"
+                            elif line.startswith("4. 출처"):
+                                current_key = "출처"
+                            elif current_key:
+                                categories[current_key].append(line)
+
+                        # 결과 표 출력
+                        st.markdown("#### 📊 분석 결과 (줄 수 기준)")
+                        df = pd.DataFrame({
+                            "항목": list(categories.keys()),
+                            "줄 수": [len(categories[k]) for k in categories]
+                        })
+
+                        st.dataframe(df, use_container_width=True)
+
+                        # 그래프 출력
+                        st.markdown("#### 📈 시각화 결과")
+                        st.bar_chart(df.set_index("항목"))
+
+                        
         elif st.session_state.current_page == "📓 내 노트":
             st.subheader("내 노트")
             st.write("개인 노트 관리 기능이 준비 중입니다.")
