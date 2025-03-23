@@ -227,7 +227,7 @@ def parse_report_html_to_json(html_content):
 
 def create_analysis_prompt():
     """
-    입력된 텍스트를 바탕으로 핵심 내용, 느낀 점, 궁금한 점을 분석하도록 하는 GPT 프롬프트를 생성합니다.
+    입력된 텍스트를 바탕으로 핵심 내용을 분석하도록 하는 GPT 프롬프트를 생성합니다.
     """
     prompt_template = """
     사용자가 입력한 글을 읽고 초등학생 눈높이에 맞춰 아래와 같은 질문-답 형식으로 분석해 주세요.
@@ -249,6 +249,20 @@ def create_analysis_prompt():
     {본문}
     """
     return ChatPromptTemplate.from_template(prompt_template)
+
+def format_analysis_result(result_dict):
+    question_map = {
+        "1": "1. 이 보고서에서 가장 중요한 내용은 무엇일까?",
+        "2": "2. 핵심 주제에 대한 구체적인 질문"
+    }
+    
+    formatted = ""
+    for key in ["1", "2"]:  # 순서대로 출력
+        if key in result_dict:
+            question = question_map.get(key, f"{key}.")
+            answer = result_dict[key]
+            formatted += f"{question}\n→ {answer}\n\n"
+    return formatted.strip()
 
 def analyze_text(text):
     prompt = create_analysis_prompt()
