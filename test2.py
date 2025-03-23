@@ -273,25 +273,22 @@ def create_report_prompt(grade, selected_subject, topic):
     """
     return ChatPromptTemplate.from_template(prompt_template)
 
-def create_question_prompt(grade, selected_subject, topic):
-    prompt_template = f"""
+def create_question_prompt():
+    prompt_template = """
     초등학생 {grade}학년 수준에서 "{selected_subject}" 교과의 "{topic}" 주제를 바탕으로 다음 세 가지 유형의 탐구 질문을 각각 5개씩 생성해 주세요.
 
     - 사실적 질문: 주로 정보를 찾거나 확인하는 질문
     - 개념적 질문: 개념이나 아이디어를 설명하거나 비교하는 질문
     - 논쟁적 질문: 서로 다른 관점이 있을 수 있는 주제에 대한 질문
 
-    각 질문은 명확하고 초등학생 눈높이에 맞게 작성해 주세요.
-
     아래 형식의 JSON으로 응답해 주세요:
-
     {{
-        "사실적 질문": ["질문1", "질문2", ..., "질문5"],
-        "개념적 질문": ["질문1", "질문2", ..., "질문5"],
-        "논쟁적 질문": ["질문1", "질문2", ..., "질문5"]
+        "사실적 질문": ["질문1", ..., "질문5"],
+        "개념적 질문": ["질문1", ..., "질문5"],
+        "논쟁적 질문": ["질문1", ..., "질문5"]
     }}
 
-    JSON 외의 텍스트는 출력하지 마세요.
+    JSON 외 텍스트는 출력하지 마세요.
     """
     return ChatPromptTemplate.from_template(prompt_template)
 
@@ -311,6 +308,19 @@ def generate_report(grade, selected_subject, topic):
     # Build a simple chain: prompt | llm | output parser
     chain = prompt | llm | JsonOutputParser()
     response = chain.invoke({})
+    return response
+
+def generate_question(grade, selected_subject, topic):
+    prompt = create_question_prompt()
+    chain = prompt | llm | JsonOutputParser()
+    
+    # 👇 여기에 실제 값을 넣어줘야 함
+    response = chain.invoke({
+        "grade": grade,
+        "selected_subject": selected_subject,
+        "topic": topic
+    })
+    
     return response
 
 #@st.cache_data(max_entries=32)
