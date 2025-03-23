@@ -316,7 +316,7 @@ def export_analysis_to_pdf(analysis_result, file_name="analysis_report.pdf"):
         answer = item.get("answer", "")
 
         pdf.multi_cell(0, 10, txt=f"{key}. {question}", border=0)
-        pdf.multi_cell(0, 10, txt=f"- {answer}", border=0)
+        pdf.multi_cell(0, 10, txt=f"답변: {answer}", border=0)
         pdf.ln(5)
 
     # PDF 저장
