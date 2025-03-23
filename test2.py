@@ -297,6 +297,15 @@ def analyze_text(text):
 
     return structured_result
 
+import re
+
+def clean_text(text):
+    """PDF 출력용으로 텍스트를 정제: 이모지/특수문자 제거"""
+    if not isinstance(text, str):
+        return ""
+    # 한글, 영문, 숫자, 일반 문장부호만 허용
+    return re.sub(r"[^\uAC00-\uD7A3\u3131-\u3163\u1100-\u11FF\w\s.,!?\"'():-]", "", text)
+
 def export_analysis_to_pdf(result_dict):
     from fpdf import FPDF
     import tempfile
