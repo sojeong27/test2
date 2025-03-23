@@ -261,20 +261,6 @@ def generate_question(grade, selected_subject, topic):
     return response
 
     #@st.cache_data(max_entries=32)
-def create_question_prompt(grade, selected_subject, topic):
-    prompt_template = f"""
-    초등학생 {grade}학년 수준에서 "{selected_subject}" 과목의 "{topic}"에 관련된 탐구 질문을 10개 만들어주세요.
-
-    [탐구 질문 형식]
-    1. 탐구 질문 1
-    2. 탐구 질문 2
-    3. 탐구 질문 3
-    4. 탐구 질문 4
-
-    위 형식을 참고하여 탐구 질문을 제시하되, 각각의 값들을 JSON으로 받아와주세요.
-    주어진 형식과 동일한 JSON 형태로만 응답하세요. JSON 외의 추가 텍스트는 출력하지 마세요.
-    """
-    return ChatPromptTemplate.from_template(prompt_template)
 
 #@st.cache_data(max_entries=32)
 def generate_report(grade, selected_subject, topic):
@@ -736,9 +722,9 @@ def main_content():
                 )
                 
                 st.session_state.editor_content = content
-
+                
                 # Create three columns to hold the buttons in one row.
-                col1, col2, col3, col4, col5, col6 = st.columns([0.2, 0.5, 0.5, 0.5, 0.2])
+                col1, col2, col3, col4, col5, col6 = st.columns([0.2, 0.5, 0.5, 0.5, 0.5, 0.2])
 
                 with col2:
                     # Insert a marker before the button so that we can style it via CSS.
@@ -925,15 +911,31 @@ def main_content():
                 st.session_state.editor_content = content
 
                 # Create three columns to hold the buttons in one row.
-                col1, col2, col4, col5, col6 = st.columns([0.2, 0.5, 0.5, 0.5, 0.2])
+                col1, col2, col3, col4, col5, col6 = st.columns([0.2, 0.5, 0.5, 0.5, 0.5, 0.2])
 
                 with col2:
                     # Insert a marker before the button so that we can style it via CSS.
                     st.markdown('<span id="button-summary"></span>', unsafe_allow_html=True)
                     if st.button("생성", key="create_button"):
-                        st.session_state.editor_content = generate_question(st.session_state.selected_grade, st.session_state.selected_subject, st.session_state.selected_text)
+                        st.session_state.editor_content = generate_report(st.session_state.selected_grade, st.session_state.selected_subject, st.session_state.selected_text)
                         st.session_state.editor_key += 1  # 키 값 변경으로 컴포넌트 강제 리렌더링
                         st.rerun()
+
+
+
+                with col3:
+                    st.markdown('<span id="button-summary"></span>', unsafe_allow_html=True)
+                    if st.button("요약", key="summary_button"):
+                        if st.session_state.editor_content:
+                            summary = generate_summary(st.session_state.editor_content)
+                            print("_-------------------")
+                            print(summary)
+                            st.session_state.editor_content = summary  # 요약 결과를 반영
+                            st.session_state.editor_key += 1  # 키 값 변경으로 강제 리렌더링
+                            st.rerun()
+                        else:
+                            st.warning("요약할 내용이 없습니다. 먼저 보고서를 생성해 주세요.")
+
 
                 with col4:
                     st.markdown('<span id="button-copy"></span>', unsafe_allow_html=True)
