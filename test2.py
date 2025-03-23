@@ -300,44 +300,51 @@ def analyze_text(text):
 import re
 
 def clean_text(text):
-    """PDF에 출력 가능한 텍스트만 남기고 나머지를 제거"""
+    """PDF에 안전하게 출력할 수 있도록 텍스트 정제"""
     if not isinstance(text, str):
         return ""
-    # 이모지 제거
-    text = re.sub(r"[^\x00-\x7F\uAC00-\uD7A3\u3131-\u3163\u1100-\u11FF\s.,!?\"'():-]", "", text)
-    # 줄바꿈 정리
-    text = text.replace("\r", "").replace("\n", "\n")
-    return text.strip()
+    
+    # 1. 이모지 및 특수문자 제거
+    text = re.sub(r'[^\uAC00-\uD7A3\u3131-\u3163\u1100-\u11FF\u0000-\u007F\s.,!?\"\'():\-]', '', text)
+    
+    # 2. 과도한 공백/줄바꿈 정리
+    text = text.replace('\r', '').replace('\u200b', '').strip()
+    
+    return text
 
-def export_analysis_to_pdf(result_dict):
+def export_analysis_to_pdf(analysis_result):
     from fpdf import FPDF
     import tempfile
+    import os
 
     pdf = FPDF()
     pdf.add_page()
-    
-    # 폰트 설정 (한글 폰트 포함 필요)
-    font_path = "fonts/H2MJRE.TTF"
+
+    font_path = os.path.join("fonts", "H2MJRE.TTF")  # 한글 폰트 경로 확인 필요
     pdf.add_font("CustomFont", "", font_path, uni=True)
     pdf.set_font("CustomFont", size=12)
 
-    pdf.cell(200, 10, txt="📓 자료 분석 결과", ln=True, align="C")
-    pdf.ln(10)
+    pdf.set_left_margin(10)
+    pdf.set_right_margin(10)
 
-    for key in sorted(result_dict.keys(), key=lambda x: int(x)):
-        item = result_dict[key]
+    pdf.set_font("CustomFont", size=14)
+    pdf.cell(0, 10, "📓 자료 분석 결과", ln=True)
+
+    pdf.set_font("CustomFont", size=12)
+
+    for idx, item in analysis_result.items():
         question = clean_text(item.get("question", ""))
         answer = clean_text(item.get("answer", ""))
 
-        pdf.set_font("CustomFont", size=12)
-        pdf.multi_cell(0, 10, txt=f"{key}. {question}", border=0)
-        pdf.set_font("CustomFont", size=11)
-        pdf.multi_cell(0, 10, txt=f"답변: {answer}", border=0)
+        # ✅ 안전한 출력
         pdf.ln(5)
+        pdf.multi_cell(0, 10, txt=f"Q{idx}. {question}", border=0)
+        pdf.multi_cell(0, 10, txt=f"답변: {answer}", border=0)
 
-    with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmpfile:
-        pdf.output(tmpfile.name)
-        return tmpfile.name
+    # 파일 저장
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp_file:
+        pdf.output(tmp_file.name)
+        return tmp_file.name
 
 def create_question_prompt(grade, selected_subject, topic):
     prompt_template = f"""
