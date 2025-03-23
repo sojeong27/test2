@@ -894,29 +894,6 @@ def main_content():
                 if 'generated_questions' not in st.session_state:
                         st.session_state.generated_questions = {}
 
-                col1, col2 = st.columns([0.5, 0.5])
-
-                with col1:
-                    if st.button("질문 생성"):
-                        # 질문 생성
-                        result = generate_question(
-                            st.session_state.selected_grade,
-                            st.session_state.selected_subject,
-                            st.session_state.selected_text
-                        )
-                        st.session_state.generated_questions = result
-                        st.success("질문이 생성되었습니다!")
-
-                with col2:
-                    if st.session_state.generated_questions:
-                        copy_text = ""
-                        for key, questions in st.session_state.generated_questions.items():
-                            copy_text += f"【{key}】\n" + "\n".join(f"- {q}" for q in questions) + "\n\n"
-
-                        if st.button("복사"):
-                            copy_to_clipboard_js(copy_text)
-                            st.success("질문이 복사되었습니다!")
-
                 st.divider()
 
                     # 표로 출력
@@ -944,7 +921,34 @@ def main_content():
                 else:
                     st.info("먼저 키워드를 선택하고 '질문 생성' 버튼을 눌러주세요.")
 
-       
+                    # 버튼을 질문 표 아래로 옮기고 스타일 통일
+                col1, col2, col3, col4, col5, col6 = st.columns([0.2, 0.5, 0.5, 0.5, 0.5, 0.2])
+
+                with col2:
+                    st.markdown('<span id="button-summary"></span>', unsafe_allow_html=True)
+                    if st.button("질문 생성", key="generate_questions_button"):
+                        if st.session_state.selected_text:
+                            result = generate_question(
+                                st.session_state.selected_grade,
+                                st.session_state.selected_subject,
+                                st.session_state.selected_text
+                            )
+                            st.session_state.generated_questions = result
+                            st.success("질문이 생성되었습니다!")
+                        else:
+                            st.warning("키워드를 선택해 주세요.")
+                
+                with col3:
+                    st.markdown('<span id="button-copy"></span>', unsafe_allow_html=True)
+                    if st.session_state.generated_questions:
+                        copy_text = ""
+                        for key, questions in st.session_state.generated_questions.items():
+                            copy_text += f"【{key}】\n" + "\n".join(f"- {q}" for q in questions) + "\n\n"
+                
+                        if st.button("복사", key="copy_questions_button"):
+                            copy_to_clipboard_js(copy_text)
+                            st.success("질문이 복사되었습니다!")
+
         elif st.session_state.current_page == "📓 내 노트":
             st.subheader("내 노트")
             st.write("개인 노트 관리 기능이 준비 중입니다.")
