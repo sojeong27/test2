@@ -949,23 +949,6 @@ def main_content():
                             copy_to_clipboard_js(copy_text)
                             st.success("질문이 복사되었습니다!")
 
-                with col4:
-                    st.markdown('<span id="button-print"></span>', unsafe_allow_html=True)
-                    if st.button("출력", key="print_button"):
-                        
-                        if st.session_state.editor_content:
-                            # 엑셀 및 PDF 파일 생성
-                            excel_path, pdf_path = create_pdf_from_excel_template(st.session_state.editor_content)
-
-                            # PDF 파일 다운로드 링크 제공
-                            with open(pdf_path, "rb") as f:
-                                st.download_button(
-                                    label="PDF 다운로드",
-                                    data=f,
-                                    file_name="report.pdf",
-                                    mime="application/pdf"
-                                )
-
         elif st.session_state.current_page == "📓 내 노트":
             st.subheader("내 노트")
             st.write("개인 노트 관리 기능이 준비 중입니다.")
