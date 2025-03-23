@@ -949,6 +949,17 @@ def main_content():
                             copy_to_clipboard_js(copy_text)
                             st.success("질문이 복사되었습니다!")
 
+                with col4:
+                    if st.session_state.generated_questions:
+                        pdf_path = generate_question_pdf(st.session_state.generated_questions)
+                        with open(pdf_path, "rb") as f:
+                            st.download_button(
+                                label="출력 (PDF 다운로드)",
+                                data=f,
+                                file_name="탐구질문.pdf",
+                                mime="application/pdf"
+                            )
+
         elif st.session_state.current_page == "📓 내 노트":
             st.subheader("내 노트")
             st.write("개인 노트 관리 기능이 준비 중입니다.")
