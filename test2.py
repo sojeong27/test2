@@ -1066,8 +1066,10 @@ def main_content():
                         st.warning("분석할 내용을 먼저 입력하세요.")
                     else:
                         with st.spinner("분석 중입니다..."):
-                            analysis_result = {'1': '이 보고서에서 가장 중요한 내용은 무엇일까?', '2': '핵심 주제에 대한 구체적인 질문'}
-                            formatted_text = format_analysis_result(analysis_result)
+                            analysis_result = {
+                            '1': {'question': '이 보고서에서 가장 중요한 내용은 무엇일까?', 'answer': '식물의 씨앗이 바람이나 중력을 이용해 퍼진다는 내용이야. 이런 퍼짐이 식물의 생존과 번식에 중요해.'},
+                            '2': {'question': '핵심 주제에 대한 구체적인 질문', 'answer': '바람을 이용해 씨앗이 퍼지는 방법에는 민들레처럼 날리는 방식과 나무에서 떨어지는 방식이 있어.},
+                            } 
                             st.text_area("분석 결과", formatted_text, height=300)
                             st.session_state.analysis_result = analysis_result
                             st.success("분석이 완료되었습니다.")
@@ -1075,9 +1077,8 @@ def main_content():
             with col3:
                 st.markdown('<span id="button-print"></span>', unsafe_allow_html=True)
                 if st.button("출력", key="analysis_pdf_button"):
-                    if 'analysis_result' in st.session_state and st.session_state.analysis_result:
-                        pdf_path = create_pdf_from_analysis(st.session_state.analysis_text, st.session_state.analysis_result)
-                        pdf.multi_cell(0, 10, txt=formatted_text, align="L")
+                    if st.session_state.get("analysis_result"):
+                        pdf_path = export_analysis_to_pdf(st.session_state.analysis_result)
                         with open(pdf_path, "rb") as f:
                             st.download_button(
                                 label="PDF 다운로드",
@@ -1091,7 +1092,17 @@ def main_content():
             # 분석 결과 출력
             if 'analysis_result' in st.session_state:
                 st.write("### 🧠 분석 결과")
-                st.text_area("결과 요약", value=st.session_state.analysis_result, height=300, label_visibility="collapsed")
+            
+                def format_analysis_result(result_dict):
+                    formatted = ""
+                    for key in sorted(result_dict.keys()):
+                        q = result_dict[key].get('question', '')
+                        a = result_dict[key].get('answer', '')
+                        formatted += f"{key}. {q}\n→ {a}\n\n"
+                    return formatted.strip()
+            
+                formatted_text = format_analysis_result(st.session_state.analysis_result)
+                st.text_area("결과 요약", value=formatted_text, height=300, label_visibility="collapsed")
                         
         elif st.session_state.current_page == "📓 내 노트":
             st.subheader("내 노트")
