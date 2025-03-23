@@ -951,57 +951,52 @@ def main_content():
 
         elif st.session_state.current_page == "📓 자료 분석하기":
             st.subheader("📓 자료 분석하기")
-            st.write("이전에 복사한 내용을 붙여넣고 분석해보세요.")
-
-            st.markdown("#### 📋 복사한 내용 붙여넣기")
-            input_text = st.text_area(
-                "여기에 복사한 텍스트를 붙여넣으세요.",
-                placeholder="예: 주제, 조사 개요, 조사 내용 등을 복사해 넣으세요.",
-                key="analysis_input",
-                height=200,
-                label_visibility="collapsed"
-            )
-
-            col1, col2, col3 = st.columns([0.3, 0.3, 0.4])
+            st.write("복사한 자료를 붙여넣고 분석해보세요. 핵심 내용, 느낀 점, 궁금한 점 중심으로 분석 결과와 마인드맵이 생성됩니다.")
+        
+            # 붙여넣기 입력 창
+            user_input = st.text_area("📋 복사한 내용을 여기에 붙여넣으세요", height=300, key="analysis_input")
+        
+            # 버튼 UI 동일 적용
+            col1, col2, col3, col4 = st.columns([0.2, 0.5, 0.5, 0.2])
             with col2:
-                if st.button("🔍 분석"):
-                    if input_text.strip() == "":
-                        st.warning("붙여넣은 내용이 없습니다.")
+                st.markdown('<span id="button-summary"></span>', unsafe_allow_html=True)
+                if st.button("분석", key="analyze_button"):
+                    if not user_input.strip():
+                        st.warning("분석할 내용을 먼저 입력하세요.")
                     else:
-                        # 간단한 분석 로직 예시: 항목별 줄 수 세기
-                        lines = input_text.splitlines()
-                        categories = {
-                            "주제": [],
-                            "조사 개요": [],
-                            "조사 내용": [],
-                            "출처": [],
-                        }
-                        current_key = None
-                        for line in lines:
-                            line = line.strip()
-                            if line.startswith("1. 주제"):
-                                current_key = "주제"
-                            elif line.startswith("2. 조사 개요"):
-                                current_key = "조사 개요"
-                            elif line.startswith("3. 조사 내용"):
-                                current_key = "조사 내용"
-                            elif line.startswith("4. 출처"):
-                                current_key = "출처"
-                            elif current_key:
-                                categories[current_key].append(line)
+                        with st.spinner("분석 중입니다..."):
+                            analysis_result = analyze_text(user_input)
+                            st.session_state.analysis_result = analysis_result
+                            st.session_state.analysis_mindmap_path = draw_mindmap_from_text(user_input)
+                            st.success("분석이 완료되었습니다.")
+        
+            with col3:
+                st.markdown('<span id="button-print"></span>', unsafe_allow_html=True)
+                if st.button("출력", key="analysis_pdf_button"):
+                    if 'analysis_result' in st.session_state and 'analysis_mindmap_path' in st.session_state:
+                        pdf_path = save_mindmap_and_analysis_as_pdf(
+                            st.session_state.analysis_mindmap_path,
+                            st.session_state.analysis_result
+                        )
+                        with open(pdf_path, "rb") as f:
+                            st.download_button(
+                                label="PDF 다운로드",
+                                data=f,
+                                file_name="자료_분석.pdf",
+                                mime="application/pdf"
+                            )
+                    else:
+                        st.warning("먼저 자료를 분석한 후에 출력할 수 있습니다.")
+        
+            # 분석 결과 출력
+            if 'analysis_result' in st.session_state:
+                st.write("### 🧠 분석 결과")
+                st.text_area("결과 요약", value=st.session_state.analysis_result, height=300, label_visibility="collapsed")
+        
+            if 'analysis_mindmap_path' in st.session_state and os.path.exists(st.session_state.analysis_mindmap_path):
+                st.write("### 🗺️ 마인드맵")
+                st.image(st.session_state.analysis_mindmap_path, use_column_width=True)
 
-                        # 결과 표 출력
-                        st.markdown("#### 📊 분석 결과 (줄 수 기준)")
-                        df = pd.DataFrame({
-                            "항목": list(categories.keys()),
-                            "줄 수": [len(categories[k]) for k in categories]
-                        })
-
-                        st.dataframe(df, use_container_width=True)
-
-                        # 그래프 출력
-                        st.markdown("#### 📈 시각화 결과")
-                        st.bar_chart(df.set_index("항목"))
 
                         
         elif st.session_state.current_page == "📓 내 노트":
