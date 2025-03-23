@@ -249,28 +249,26 @@ def create_question_prompt(grade, selected_subject, topic):
 
 def analyze_text(text):
     prompt = ChatPromptTemplate.from_template("""
-    다음 자료를 바탕으로 아래 세 가지 항목으로 분석해 주세요.
+    다음 글을 분석해 주세요.
 
     1. 핵심 내용 정리
     2. 느낀 점
     3. 궁금한 점
 
-    아래 형식으로 출력해 주세요:
+    아래 JSON 형식으로 출력해 주세요:
 
-    핵심 내용:
-    ...
+    {
+      "핵심 내용": "...",
+      "느낀 점": "...",
+      "궁금한 점": "..."
+    }
 
-    느낀 점:
-    ...
-
-    궁금한 점:
-    ...
-    
-    자료:
-    {text}
+    분석할 글:
+    {input}
     """)
-    chain = prompt | llm | StrOutputParser()
-    return chain.invoke({"text": text})
+    chain = prompt | llm | JsonOutputParser()
+    response = chain.invoke({"input": text})
+    return response
 
 def draw_mindmap(analysis_text):
     dot = Digraph(comment='Mind Map')
