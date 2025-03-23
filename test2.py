@@ -291,7 +291,7 @@ def create_analysis_pdf(analysis_result, output_path=None):
     # 질문-답 형식 텍스트 정의
     qna_list = [
         ("1. 이 보고서에서 가장 중요한 내용은 무엇일까?", analysis_result.get("핵심 내용 정리", "")),
-        ("2. 핵심 주제에 대한 구체적인 질문, analysis_result.get("구체적인 정보나 설명", "")),
+        ("2. 핵심 주제에 대한 구체적인 질문", analysis_result.get("구체적인 정보나 설명", "")),
     ]
 
     # 각 Q&A 출력
