@@ -300,11 +300,14 @@ def analyze_text(text):
 import re
 
 def clean_text(text):
-    """PDF 출력용으로 텍스트를 정제: 이모지/특수문자 제거"""
+    """PDF에 출력 가능한 텍스트만 남기고 나머지를 제거"""
     if not isinstance(text, str):
         return ""
-    # 한글, 영문, 숫자, 일반 문장부호만 허용
-    return re.sub(r"[^\uAC00-\uD7A3\u3131-\u3163\u1100-\u11FF\w\s.,!?\"'():-]", "", text)
+    # 이모지 제거
+    text = re.sub(r"[^\x00-\x7F\uAC00-\uD7A3\u3131-\u3163\u1100-\u11FF\s.,!?\"'():-]", "", text)
+    # 줄바꿈 정리
+    text = text.replace("\r", "").replace("\n", "\n")
+    return text.strip()
 
 def export_analysis_to_pdf(result_dict):
     from fpdf import FPDF
@@ -325,7 +328,7 @@ def export_analysis_to_pdf(result_dict):
         item = result_dict[key]
         question = clean_text(item.get("question", ""))
         answer = clean_text(item.get("answer", ""))
-        
+
         pdf.set_font("CustomFont", size=12)
         pdf.multi_cell(0, 10, txt=f"{key}. {question}", border=0)
         pdf.set_font("CustomFont", size=11)
