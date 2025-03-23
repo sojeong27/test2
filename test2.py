@@ -1066,7 +1066,7 @@ def main_content():
                         st.warning("분석할 내용을 먼저 입력하세요.")
                     else:
                         with st.spinner("분석 중입니다..."):
-                            analysis_result = = {'1': '이 보고서에서 가장 중요한 내용은 무엇일까?', '2': '핵심 주제에 대한 구체적인 질문'}
+                            analysis_result = {'1': '이 보고서에서 가장 중요한 내용은 무엇일까?', '2': '핵심 주제에 대한 구체적인 질문'}
                             formatted_text = format_analysis_result(analysis_result)
                             st.text_area("분석 결과", formatted_text, height=300)
                             st.session_state.analysis_result = analysis_result
