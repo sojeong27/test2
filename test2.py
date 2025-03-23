@@ -787,131 +787,118 @@ def main_content():
                             st.success("PDF 파일이 생성되었습니다. 다운로드 버튼을 클릭하세요.")
                         else:
                             st.warning("출력할 내용이 없습니다. 먼저 보고서를 생성해 주세요.")
+                            
+                            elif st.session_state.current_page == "📊 탐구 질문 만들기":
+                                st.subheader("📊 탐구 질문 만들기")
+                                st.write("선택한 키워드를 바탕으로 탐구 질문을 생성하고, 유형별로 분류해볼 수 있어요.")
+                                with center:
+                                st.markdown('<div class="vertical-line"></div>', unsafe_allow_html=True)
+                            
+                                with keyword_section:
+                                keyword_col1, keyword_col2, keyword_col3, keyword_col4 = st.columns([0.2, 0.2, 0.2, 0.4])
+                                keyword_col1.markdown('<div class="info-cmd">추천 키워드</div>', unsafe_allow_html=True)
+                                keyword_col2.selectbox("학년", ["1학년", "2학년", "3학년", "4학년", "5학년", "6학년"], label_visibility="collapsed", key='selected_grade')
+                                keyword_col3.selectbox("교과선택", ["국어", "사회", "과학"], label_visibility="collapsed", key='selected_subject')
+                                keyword_col4.text_input("키워드 입력", placeholder="키워드를 입력하세요", label_visibility="collapsed", key='keyword_input')
+                            
+                                add_vertical_space(1)
+                                if 'selected_text' not in st.session_state:
+                                st.session_state.selected_text = None
+                                
+                                if 'keywords' not in st.session_state:
+                                st.session_state.keywords = []
+                                
+                                if st.session_state.keyword_input:
+                                st.session_state.keywords = generate_topics(
+                                st.session_state.selected_grade, 
+                                st.session_state.selected_subject, 
+                                st.session_state.keyword_input
+                                )
+                                
+                                if st.session_state.keywords:
+                                for idx, keyword in enumerate(st.session_state.keywords):
+                                is_selected = keyword == st.session_state.selected_text
+                                style_span = '<span class="selected-keyword"></span>' if is_selected else '<span id="keyword-button"></span>'
+                                st.markdown(style_span, unsafe_allow_html=True)
+                                button_label = f"**{keyword}**" if is_selected else keyword
+                                
+                                def select_keyword(k=keyword):
+                                st.session_state.selected_text = None if st.session_state.selected_text == k else k
+                                
+                                if st.button(button_label, key=f"kwq_{idx}", on_click=select_keyword):
+                                    pass
+                                    
+                                    with document_section:
+                                        if st.session_state.selected_text:
+                                            st.markdown(f'<div class="selected-text">{st.session_state.selected_text}</div>', unsafe_allow_html=True)
+                                        
+                                        if 'generated_questions' not in st.session_state:
+                                            st.session_state.generated_questions = {}
+                                            col1, col2 = st.columns([0.5, 0.5])
+                                            
+                                            with col1:
+                                            if st.button("질문 생성"):
+                                                # 질문 생성
+                                                result = generate_question(
+                                                    st.session_state.selected_grade,
+                                                    st.session_state.selected_subject,
+                                                    st.session_state.selected_text
+                                                )
+                                                st.session_state.generated_questions = result
+                                                st.success("질문이 생성되었습니다!")
+                                                
+                                                with col2:
+                                                    if st.session_state.generated_questions:
+                                                        copy_text = ""
+                                                        for key, questions in st.session_state.generated_questions.items():
+                                                            copy_text += f"【{key}】\n" + "\n".join(f"- {q}" for q in questions) + "\n\n"
+                                                            
+                                                            if st.button("복사"):
+                                                                copy_to_clipboard_js(copy_text)
+                                                                st.success("질문이 복사되었습니다!")
+                                                            
+                                                                st.divider()
+                                                                
+                                                                if st.session_state.generated_questions:
+                                                                    st.write("### 생성된 탐구 질문")
 
+                                                                    max_len = max(len(qs) for qs in st.session_state.generated_questions.values())
+                                                                    data = {
+                                                                        "사실적 질문": st.session_state.generated_questions.get("사실적 질문", []),
+                                                                        "개념적 질문": st.session_state.generated_questions.get("개념적 질문", []),
+                                                                        "논쟁적 질문": st.session_state.generated_questions.get("논쟁적 질문", [])
+                                                                    }
 
-        elif st.session_state.current_page == "📊 탐구 질문 만들기":
-    st.subheader("탐구 질문 만들기")
-    st.write("학생들이 스스로 탐구하고 싶은 질문을 만듭니다.")
+                                                                    rows = []
+                                                                    for i in range(max_len):
+                                                                        row = {
+                                                                            "사실적 질문": data["사실적 질문"][i] if i < len(data["사실적 질문"]) else "",
+                                                                            "개념적 질문": data["개념적 질문"][i] if i < len(data["개념적 질문"]) else "",
+                                                                            "논쟁적 질문": data["논쟁적 질문"][i] if i < len(data["논쟁적 질문"]) else "",
+                                                                        }
+                                                                        rows.append(row)
+                                                                        df = pd.DataFrame(rows)
+                                                                        st.dataframe(df, use_container_width=True, hide_index=True)
+                                                                        
+                                                                        else:
+                                                                            st.info("먼저 키워드를 선택하고 '질문 생성' 버튼을 눌러주세요.")
 
-    with center:
-        st.markdown('<div class="vertical-line"></div>', unsafe_allow_html=True)
+                                                                                                                 
+                                                                elif st.session_state.current_page == "📓 내 노트":
+                                                                    st.subheader("내 노트")
+                                                                    st.write("개인 노트 관리 기능이 준비 중입니다.")
 
-    with keyword_section:
-        keyword_col1, keyword_col2, keyword_col3, keyword_col4 = st.columns([0.2, 0.2, 0.2, 0.3])
-        keyword_col1.markdown('<div class="info-cmd">추천 키워드</div>', unsafe_allow_html=True)
-        keyword_col2.selectbox("학년", ["1학년", "2학년", "3학년", "4학년", "5학년", "6학년"], key='selected_grade')
-        keyword_col3.selectbox("교과", ["국어", "사회", "과학"], key='selected_subject')
-        keyword_col4.text_input("키워드 입력", placeholder="키워드를 입력하세요", key='keyword_input')
-        add_vertical_space(1)
+                                                        def main():
+                                                            """메인 앱 설정"""
+                                                            st.set_page_config(
+                                                                page_title="AI 활용 질문 기반 수업",
+                                                                page_icon="🔎",
+                                                                layout="wide",
+                                                                initial_sidebar_state="expanded",
+                                                            )
+                                                            
+                                                            sidebar()
+                                                            main_content()
 
-        if 'selected_text' not in st.session_state:
-            st.session_state.selected_text = None
-        if 'keywords' not in st.session_state:
-            st.session_state.keywords = []
-
-        if st.session_state.keyword_input:
-            st.session_state.keywords = generate_topics(
-                st.session_state.selected_grade,
-                st.session_state.selected_subject,
-                st.session_state.keyword_input
-            )
-
-        if st.session_state.keywords:
-            for idx, keyword in enumerate(st.session_state.keywords):
-                is_selected = keyword == st.session_state.selected_text
-                button_label = f"**{keyword}**" if is_selected else keyword
-
-                def select_keyword(k=keyword):
-                    st.session_state.selected_text = None if st.session_state.selected_text == k else k
-
-                if st.button(button_label, key=f"kw_{idx}", on_click=select_keyword):
-                    pass
-
-    with document_section:
-        if st.session_state.selected_text:
-            st.markdown(f'<div class="selected-text">{st.session_state.selected_text}</div>', unsafe_allow_html=True)
-        if 'editor_key' not in st.session_state:
-            st.session_state.editor_key = 0
-
-        def convert_question_dict_to_html(question_dict):
-            html_parts = []
-            for question_type, questions in question_dict.items():
-                html_parts.append(f"<h4>{question_type}</h4>")
-                for i, q in enumerate(questions, 1):
-                    html_parts.append(f"{i}. {q}")
-                html_parts.append("<br>")
-            return "<br>".join(html_parts)
-
-        if isinstance(st.session_state.editor_content, dict):
-            default_text = convert_question_dict_to_html(st.session_state.editor_content)
-        else:
-            default_text = "편집할 질문이 없습니다. 먼저 키워드를 선택하고 질문을 생성해 주세요."
-
-        content = st_quill(value=default_text, html=True, key=f'quill_editor_{st.session_state.editor_key}')
-        st.session_state.editor_content = content
-
-        col1, col2, col3, col4, col5, col6 = st.columns([0.2, 0.5, 0.5, 0.5, 0.5, 0.2])
-
-        with col2:
-            st.markdown('<span id="button-create"></span>', unsafe_allow_html=True)
-            if st.button("생성", key="create_button"):
-                st.session_state.editor_content = generate_question(
-                    st.session_state.selected_grade,
-                    st.session_state.selected_subject,
-                    st.session_state.selected_text
-                )
-                st.session_state.editor_key += 1
-                st.rerun()
-
-        with col3:
-            st.markdown('<span id="button-copy"></span>', unsafe_allow_html=True)
-            if st.button("복사", key="copy_button"):
-                if content:
-                    formatted_text = format_copied_text(content)
-                    copy_to_clipboard_js(formatted_text)
-                    st.success("클립보드에 복사되었습니다!")
-                else:
-                    st.warning("복사할 내용이 없습니다.")
-
-        with col4:
-            st.markdown('<span id="button-print"></span>', unsafe_allow_html=True)
-            if st.button("출력", key="print_button"):
-                def create_pdf_from_html(html_content):
-                    soup = BeautifulSoup(html_content, "html.parser")
-                    text = soup.get_text(separator="\n", strip=True)
-                    pdf = FPDF()
-                    pdf.add_page()
-                    font_path = os.path.join("fonts", "H2MJRE.TTF")
-                    pdf.add_font("CustomFont", "", font_path, uni=True)
-                    pdf.set_font("CustomFont", size=12)
-                    for line in text.split("\n"):
-                        pdf.multi_cell(0, 10, txt=line)
-                    pdf_path = "question_output.pdf"
-                    pdf.output(pdf_path)
-                    return pdf_path
-
-                if st.session_state.editor_content:
-                    pdf_path = create_pdf_from_html(st.session_state.editor_content)
-                    with open(pdf_path, "rb") as f:
-                        st.download_button("PDF 다운로드", f, file_name="탐구_질문.pdf", mime="application/pdf")
-                else:
-                    st.warning("출력할 내용이 없습니다.")
-        
-        elif st.session_state.current_page == "📓 내 노트":
-            st.subheader("내 노트")
-            st.write("개인 노트 관리 기능이 준비 중입니다.")
-
-def main():
-    """메인 앱 설정"""
-    st.set_page_config(
-        page_title="AI 활용 질문 기반 수업",
-        page_icon="🔎",
-        layout="wide",
-        initial_sidebar_state="expanded",
-    )
-    
-    sidebar()
-    main_content()
-
-if __name__ == '__main__':
-    main()
+                                                        if __name__ == '__main__':
+                                                            main()
