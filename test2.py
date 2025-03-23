@@ -230,72 +230,84 @@ def create_analysis_prompt():
     입력된 텍스트를 바탕으로 핵심 내용, 느낀 점, 궁금한 점을 분석하도록 하는 GPT 프롬프트를 생성합니다.
     """
     prompt_template = """
-    다음은 초등학생이 조사한 자료입니다. 이 자료를 아래의 세 가지 기준에 따라 분석해 주세요:
+    사용자가 입력한 글을 읽고 초등학생 눈높이에 맞춰 아래와 같은 질문-답 형식으로 분석해 주세요.
+    
+    1. 이 보고서에서 가장 중요한 내용은 무엇일까?
+    → (핵심 내용을 간단하고 명확하게 설명)
 
-    1. 핵심 내용 정리: 글의 주요 정보나 사실을 정리
-    2. 느낀 점: 글을 읽고 학생이 느꼈을 감정이나 생각
-    3. 궁금한 점: 추가로 탐구하고 싶은 질문이나 호기심
+    2. 핵심 주제에 대한 구체적인 질문
+    → (구체적인 정보나 설명)
 
-    아래와 같은 JSON 형식으로 응답해 주세요:
+    이 형식을 지켜서 JSON 형식으로 결과를 반환해 주세요.
 
     {{
-        "핵심 내용 정리": "...",
-        "느낀 점": "...",
-        "궁금한 점": "..."
+        "1": "...",
+        "2": "...",
     }}
-
-    분석 대상:
+    
+    입력된 글:
     {본문}
     """
-    return ChatPromptTemplate.from_template(prompt_template)
-
-def analyze_text(text: str) -> dict:
-    """
-    주어진 텍스트를 GPT 모델로 분석하여 결과를 반환합니다.
-    결과는 핵심 내용 / 느낀 점 / 궁금한 점으로 구성된 JSON 딕셔너리입니다.
-    """
-    prompt = create_analysis_prompt()
+    prompt = ChatPromptTemplate.from_template(prompt_template)
     chain = prompt | llm | JsonOutputParser()
     response = chain.invoke({"본문": text})
     return response
 
-def create_analysis_pdf(original_text: str, analysis_result: dict) -> str:
+from fpdf import FPDF
+import os
+import tempfile
+
+def create_analysis_pdf(analysis_result, output_path=None):
     """
-    분석 결과를 PDF 파일로 생성합니다.
-    :param original_text: 원본 붙여넣은 텍스트
-    :param analysis_result: 분석 결과 딕셔너리 (핵심 내용, 느낀 점, 궁금한 점)
-    :return: 생성된 PDF 파일 경로
+    분석 결과를 질문-답 형식으로 PDF로 저장하는 함수
+
+    Args:
+        analysis_result (dict): {
+            "핵심 내용 정리": "...",
+        }
+        output_path (str): 저장 경로. 지정하지 않으면 임시 경로 사용
+
+    Returns:
+        str: PDF 파일 경로
     """
-    pdf = FPDF()
-    pdf.add_page()
-    
-    font_path = os.path.join("fonts", "H2MJRE.TTF")  # 반드시 존재해야 함
+    # 기본 폰트 설정
+    font_path = os.path.join("fonts", "H2MJRE.TTF")
     if not os.path.exists(font_path):
-        raise FileNotFoundError("fonts 폴더에 H2MJRE.TTF 파일이 없습니다.")
-    
+        raise FileNotFoundError("fonts 폴더에 한글 폰트(H2MJRE.TTF)가 필요합니다.")
+
+    pdf = FPDF()
+    pdf.set_auto_page_break(auto=True, margin=15)
+    pdf.add_page()
     pdf.add_font("CustomFont", "", font_path, uni=True)
     pdf.set_font("CustomFont", size=12)
-    
-    pdf.cell(0, 10, "📓 자료 분석 결과", ln=True, align="C")
+
+    # 제목
+    pdf.set_font("CustomFont", size=14)
+    pdf.cell(0, 10, "📓 자료 분석 보고서", ln=True, align="C")
     pdf.ln(10)
-
-    pdf.multi_cell(0, 10, "📘 원본 텍스트", align="L")
-    pdf.set_font("CustomFont", size=11)
-    pdf.multi_cell(0, 8, original_text)
-    pdf.ln(5)
-
     pdf.set_font("CustomFont", size=12)
-    for key, value in analysis_result.items():
-        pdf.multi_cell(0, 10, f"🔹 {key}", align="L")
-        pdf.set_font("CustomFont", size=11)
-        pdf.multi_cell(0, 8, value)
-        pdf.ln(5)
-        pdf.set_font("CustomFont", size=12)
 
-    # 임시 파일로 저장
-    with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmpfile:
-        pdf.output(tmpfile.name)
-        return tmpfile.name
+    # 질문-답 형식 텍스트 정의
+    qna_list = [
+        ("1. 이 보고서에서 가장 중요한 내용은 무엇일까?", analysis_result.get("핵심 내용 정리", "")),
+        ("2. 핵심 주제에 대한 구체적인 질문, analysis_result.get("구체적인 정보나 설명", "")),
+    ]
+
+    # 각 Q&A 출력
+    for q, a in qna_list:
+        pdf.multi_cell(0, 8, f"{q}", align="L")
+        pdf.set_text_color(80, 80, 80)
+        pdf.multi_cell(0, 8, f"→ {a}", align="L")
+        pdf.set_text_color(0, 0, 0)
+        pdf.ln(5)
+
+    # 파일 저장
+    if output_path is None:
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
+            output_path = tmp.name
+    pdf.output(output_path)
+
+    return output_path
 
 def create_question_prompt(grade, selected_subject, topic):
     prompt_template = f"""
@@ -1043,21 +1055,18 @@ def main_content():
             with col3:
                 st.markdown('<span id="button-print"></span>', unsafe_allow_html=True)
                 if st.button("출력", key="analysis_pdf_button"):
-                    if 'analysis_result' in st.session_state and 'analysis_mindmap_path' in st.session_state:
-                        pdf_path = save_mindmap_and_analysis_as_pdf(
-                            st.session_state.analysis_mindmap_path,
-                            st.session_state.analysis_result
-                        )
+                    if 'analysis_result' in st.session_state and st.session_state.analysis_result:
+                        pdf_path = create_pdf_from_analysis(st.session_state.analysis_text, st.session_state.analysis_result)
                         with open(pdf_path, "rb") as f:
                             st.download_button(
                                 label="PDF 다운로드",
                                 data=f,
-                                file_name="자료_분석.pdf",
+                                file_name="analysis_report.pdf",
                                 mime="application/pdf"
                             )
                     else:
                         st.warning("먼저 자료를 분석한 후에 출력할 수 있습니다.")
-        
+                        
             # 분석 결과 출력
             if 'analysis_result' in st.session_state:
                 st.write("### 🧠 분석 결과")
