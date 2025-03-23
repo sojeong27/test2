@@ -297,62 +297,32 @@ def analyze_text(text):
 
     return structured_result
 
-from fpdf import FPDF
-import os
-import tempfile
-
-def create_analysis_pdf(analysis_result, output_path=None):
-    """
-    분석 결과를 질문-답 형식으로 PDF로 저장하는 함수
-
-    Args:
-        analysis_result (dict): {
-            "핵심 내용 정리": "...",
-            "구체적인 정보나 설명": "...",
-        }
-        output_path (str): 저장 경로. 지정하지 않으면 임시 경로 사용
-
-    Returns:
-        str: PDF 파일 경로
-    """
-    # 기본 폰트 설정
-    font_path = os.path.join("fonts", "H2MJRE.TTF")
-    if not os.path.exists(font_path):
-        raise FileNotFoundError("fonts 폴더에 한글 폰트(H2MJRE.TTF)가 필요합니다.")
+def export_analysis_to_pdf(analysis_result, file_name="analysis_report.pdf"):
+    from fpdf import FPDF
+    import tempfile
 
     pdf = FPDF()
-    pdf.set_auto_page_break(auto=True, margin=15)
     pdf.add_page()
-    pdf.add_font("CustomFont", "", font_path, uni=True)
+    pdf.add_font("CustomFont", "", os.path.join("fonts", "H2MJRE.TTF"), uni=True)
     pdf.set_font("CustomFont", size=12)
 
-    # 제목
-    pdf.set_font("CustomFont", size=14)
-    pdf.cell(0, 10, "📓 자료 분석 보고서", ln=True, align="C")
+    pdf.set_title("자료 분석 보고서")
+    pdf.cell(200, 10, txt="📓 자료 분석 보고서", ln=True, align="C")
     pdf.ln(10)
-    pdf.set_font("CustomFont", size=12)
 
-    # 질문-답 형식 텍스트 정의
-    qna_list = [
-        ("1. 이 보고서에서 가장 중요한 내용은 무엇일까?", analysis_result.get("핵심 내용 정리", "")),
-        ("2. 핵심 주제에 대한 구체적인 질문", analysis_result.get("구체적인 정보나 설명", "")),
-    ]
+    for key in sorted(analysis_result.keys(), key=lambda x: int(x)):
+        item = analysis_result[key]
+        question = item.get("question", "")
+        answer = item.get("answer", "")
 
-    # 각 Q&A 출력
-    for q, a in qna_list:
-        pdf.multi_cell(0, 8, f"{q}", align="L")
-        pdf.set_text_color(80, 80, 80)
-        pdf.multi_cell(0, 8, f"→ {a}", align="L")
-        pdf.set_text_color(0, 0, 0)
+        pdf.multi_cell(0, 10, txt=f"{key}. {question}", border=0)
+        pdf.multi_cell(0, 10, txt=f"→ {answer}", border=0)
         pdf.ln(5)
 
-    # 파일 저장
-    if output_path is None:
-        with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
-            output_path = tmp.name
-    pdf.output(output_path)
-
-    return output_path
+    # PDF 저장
+    temp_path = os.path.join(tempfile.gettempdir(), file_name)
+    pdf.output(temp_path)
+    return temp_path
 
 def create_question_prompt(grade, selected_subject, topic):
     prompt_template = f"""
