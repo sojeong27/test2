@@ -264,6 +264,7 @@ def create_analysis_pdf(analysis_result, output_path=None):
     Args:
         analysis_result (dict): {
             "핵심 내용 정리": "...",
+            "구체적인 정보나 설명": "...",
         }
         output_path (str): 저장 경로. 지정하지 않으면 임시 경로 사용
 
