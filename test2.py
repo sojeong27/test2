@@ -1066,10 +1066,7 @@ def main_content():
                         st.warning("분석할 내용을 먼저 입력하세요.")
                     else:
                         with st.spinner("분석 중입니다..."):
-                            analysis_result = {
-                            '1': {'question': '이 보고서에서 가장 중요한 내용은 무엇일까?', 'answer': '식물의 씨앗이 바람이나 중력을 이용해 퍼진다는 내용이야. 이런 퍼짐이 식물의 생존과 번식에 중요해.'},
-                            '2': {'question': '핵심 주제에 대한 구체적인 질문', 'answer': '바람을 이용해 씨앗이 퍼지는 방법에는 민들레처럼 날리는 방식과 나무에서 떨어지는 방식이 있어.},
-                            } 
+                            analysis_result = analysis_result = generate_analysis(pasted_text)
                             st.text_area("분석 결과", formatted_text, height=300)
                             st.session_state.analysis_result = analysis_result
                             st.success("분석이 완료되었습니다.")
