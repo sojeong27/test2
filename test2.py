@@ -273,7 +273,7 @@ def create_report_prompt(grade, selected_subject, topic):
     """
     return ChatPromptTemplate.from_template(prompt_template)
 
-    def create_question_prompt(grade, selected_subject, topic):
+def create_question_prompt(grade, selected_subject, topic):
     prompt_template = f"""
     초등학생 {grade}학년 수준에서 "{selected_subject}" 교과의 "{topic}" 주제를 바탕으로 다음 세 가지 유형의 탐구 질문을 각각 5개씩 생성해 주세요.
 
