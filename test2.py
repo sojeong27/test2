@@ -247,7 +247,7 @@ def create_question_prompt(grade, selected_subject, topic):
     """
     return ChatPromptTemplate.from_template(prompt_template)
 
-def generate_analysis(text):
+def analyze_text(text):
     prompt = ChatPromptTemplate.from_template("""
     다음 자료를 바탕으로 아래 세 가지 항목으로 분석해 주세요.
 
