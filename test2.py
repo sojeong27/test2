@@ -1049,7 +1049,7 @@ def main_content():
                         st.warning("분석할 내용을 먼저 입력하세요.")
                     else:
                         with st.spinner("분석 중입니다..."):
-                            analysis_result = analyze_text(user_input)
+                            analysis_result = analyze_text(user_본문)
                             st.session_state.analysis_result = analysis_result
                             st.success("분석이 완료되었습니다.")
         
