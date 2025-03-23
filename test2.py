@@ -225,6 +225,78 @@ def parse_report_html_to_json(html_content):
     
     return result
 
+def create_analysis_prompt():
+    """
+    입력된 텍스트를 바탕으로 핵심 내용, 느낀 점, 궁금한 점을 분석하도록 하는 GPT 프롬프트를 생성합니다.
+    """
+    prompt_template = """
+    다음은 초등학생이 조사한 자료입니다. 이 자료를 아래의 세 가지 기준에 따라 분석해 주세요:
+
+    1. 핵심 내용 정리: 글의 주요 정보나 사실을 정리
+    2. 느낀 점: 글을 읽고 학생이 느꼈을 감정이나 생각
+    3. 궁금한 점: 추가로 탐구하고 싶은 질문이나 호기심
+
+    아래와 같은 JSON 형식으로 응답해 주세요:
+
+    {{
+        "핵심 내용 정리": "...",
+        "느낀 점": "...",
+        "궁금한 점": "..."
+    }}
+
+    분석 대상:
+    {본문}
+    """
+    return ChatPromptTemplate.from_template(prompt_template)
+
+def analyze_text(text: str) -> dict:
+    """
+    주어진 텍스트를 GPT 모델로 분석하여 결과를 반환합니다.
+    결과는 핵심 내용 / 느낀 점 / 궁금한 점으로 구성된 JSON 딕셔너리입니다.
+    """
+    prompt = create_analysis_prompt()
+    chain = prompt | llm | JsonOutputParser()
+    response = chain.invoke({"본문": text})
+    return response
+
+def create_analysis_pdf(original_text: str, analysis_result: dict) -> str:
+    """
+    분석 결과를 PDF 파일로 생성합니다.
+    :param original_text: 원본 붙여넣은 텍스트
+    :param analysis_result: 분석 결과 딕셔너리 (핵심 내용, 느낀 점, 궁금한 점)
+    :return: 생성된 PDF 파일 경로
+    """
+    pdf = FPDF()
+    pdf.add_page()
+    
+    font_path = os.path.join("fonts", "H2MJRE.TTF")  # 반드시 존재해야 함
+    if not os.path.exists(font_path):
+        raise FileNotFoundError("fonts 폴더에 H2MJRE.TTF 파일이 없습니다.")
+    
+    pdf.add_font("CustomFont", "", font_path, uni=True)
+    pdf.set_font("CustomFont", size=12)
+    
+    pdf.cell(0, 10, "📓 자료 분석 결과", ln=True, align="C")
+    pdf.ln(10)
+
+    pdf.multi_cell(0, 10, "📘 원본 텍스트", align="L")
+    pdf.set_font("CustomFont", size=11)
+    pdf.multi_cell(0, 8, original_text)
+    pdf.ln(5)
+
+    pdf.set_font("CustomFont", size=12)
+    for key, value in analysis_result.items():
+        pdf.multi_cell(0, 10, f"🔹 {key}", align="L")
+        pdf.set_font("CustomFont", size=11)
+        pdf.multi_cell(0, 8, value)
+        pdf.ln(5)
+        pdf.set_font("CustomFont", size=12)
+
+    # 임시 파일로 저장
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmpfile:
+        pdf.output(tmpfile.name)
+        return tmpfile.name
+
 def create_question_prompt(grade, selected_subject, topic):
     prompt_template = f"""
     초등학생 {grade}학년 수준에서 "{selected_subject}" 교과의 "{topic}" 주제를 바탕으로 다음 세 가지 유형의 탐구 질문을 각각 5개씩 생성해 주세요.
@@ -246,75 +318,6 @@ def create_question_prompt(grade, selected_subject, topic):
     JSON 외의 텍스트는 출력하지 마세요.
     """
     return ChatPromptTemplate.from_template(prompt_template)
-
-def analyze_text(text):
-    prompt = ChatPromptTemplate.from_template("""
-다음 글을 분석해 주세요.
-
-1. 핵심 내용 정리
-2. 느낀 점
-3. 궁금한 점
-
-아래 JSON 형식으로 출력해 주세요:
-
-{
-  "핵심 내용": "...",
-  "느낀 점": "...",
-  "궁금한 점": "..."
-}
-
-분석할 글:
-{input}
-""")  
-
-    chain = prompt | llm | JsonOutputParser()
-    response = chain.invoke({"input": text})
-    return response
-
-def draw_mindmap(analysis_text):
-    dot = Digraph(comment='Mind Map')
-    dot.attr(rankdir='LR', size='10')
-
-    main_topic = "핵심 내용"
-    sub_topics = []
-
-    for line in analysis_text.splitlines():
-        if line.strip().startswith("핵심 내용:"):
-            main_topic = line.replace("핵심 내용:", "").strip() or "핵심 내용"
-        elif line.startswith("느낀 점") or line.startswith("궁금한 점"):
-            break
-        elif line.strip():
-            sub_topics.append(line.strip())
-
-    dot.node(main_topic, main_topic)
-    for i, sub in enumerate(sub_topics):
-        sub_node = f"{main_topic}_{i}"
-        dot.node(sub_node, sub)
-        dot.edge(main_topic, sub_node)
-
-    output_path = "/mnt/data/mindmap_output.png"
-    dot.render(output_path, format="png", cleanup=True)
-    return output_path
-
-def save_mindmap_and_analysis_as_pdf(image_path, analysis_text):
-    pdf = FPDF()
-    pdf.add_page()
-    pdf.add_font("Nanum", "", "/usr/share/fonts/truetype/nanum/NanumGothic.ttf", uni=True)
-    pdf.set_font("Nanum", size=12)
-
-    pdf.cell(200, 10, txt="📓 자료 분석 결과", ln=True, align='C')
-    pdf.ln(10)
-
-    for line in analysis_text.splitlines():
-        pdf.multi_cell(0, 8, txt=line)
-
-    pdf.add_page()
-    pdf.image(image_path, x=10, y=20, w=180)
-
-    output_pdf = "/mnt/data/analysis_output.pdf"
-    pdf.output(output_pdf)
-    return output_pdf
-
 
 @st.cache_data(max_entries=32)
 def keywords_recomand_rag(vectorstore, subject, grade, topic):
