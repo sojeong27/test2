@@ -656,7 +656,7 @@ def main_content():
 
     with main_center:
         if st.session_state.current_page == "📝 자료 수집·탐색하기":
-            st.subheader("자료 수집·탐색하기")
+            st.subheader("📝 자료 수집·탐색하기")
             st.write("질문 해결을 위한 자료를 수집·탐색합니다.")
             
             # 세로 구분선
