@@ -324,6 +324,23 @@ def export_analysis_to_pdf(analysis_result, file_name="analysis_report.pdf"):
     pdf.output(temp_path)
     return temp_path
 
+# 위험한 문자를 제거하거나 치환
+import re
+
+def clean_text(text):
+    # 이모지, 특수문자 제거 (한글, 영문, 숫자, 기호만 허용)
+    return re.sub(r"[^\uAC00-\uD7A3\u3131-\u3163\u1100-\u11FF\w\s.,!?()\"'’”“:-]", "", text)
+
+for key in sorted(result_dict.keys(), key=lambda x: int(x)):
+    q = result_dict[key].get("question", "")
+    a = result_dict[key].get("answer", "")
+    
+    pdf.set_font("CustomFont", size=12)
+    pdf.multi_cell(0, 10, txt=f"{key}. {clean_text(q)}", border=0)
+    pdf.set_font("CustomFont", size=11)
+    pdf.multi_cell(0, 10, txt=f"- {clean_text(a)}", border=0)
+    pdf.ln(4)
+
 def create_question_prompt(grade, selected_subject, topic):
     prompt_template = f"""
     초등학생 {grade}학년 수준에서 "{selected_subject}" 교과의 "{topic}" 주제를 바탕으로 다음 세 가지 유형의 탐구 질문을 각각 5개씩 생성해 주세요.
