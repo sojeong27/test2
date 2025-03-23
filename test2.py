@@ -255,11 +255,11 @@ def format_analysis_result(result_dict):
     for key in sorted(result_dict.keys(), key=lambda x: int(x)):
         item = result_dict[key]
 
-        # 질문-답 dict 형태일 경우
-        if isinstance(item, dict) and "question" in item and "answer" in item:
-            q = item.get("question", "")
-            a = item.get("answer", "")
-        else:  # 단순 문자열일 경우
+        # item이 dict면 질문-답변 구조, 아니면 단순 질문만 있음
+        if isinstance(item, dict):
+            q = item.get('question', '')
+            a = item.get('answer', '')
+        else:
             q = item
             a = ""
 
@@ -272,8 +272,18 @@ def format_analysis_result(result_dict):
 def analyze_text(text):
     prompt = create_analysis_prompt()
     chain = prompt | llm | JsonOutputParser()
-    response = chain.invoke({"본문": text})  # 여기에 "본문" 키를 정확히 전달해야 함
-    return response
+    raw_result = chain.invoke({"본문": text})
+
+    # 기존에는 {"1": "내용", "2": "내용"} 형태였다면
+    # 아래처럼 구조를 바꿔줍니다.
+    structured_result = {}
+    for i, (key, value) in enumerate(raw_result.items(), start=1):
+        structured_result[str(i)] = {
+            "question": key.strip(),
+            "answer": value.strip()
+        }
+
+    return structured_result
 
 from fpdf import FPDF
 import os
