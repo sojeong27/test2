@@ -1067,6 +1067,8 @@ def main_content():
                     else:
                         with st.spinner("분석 중입니다..."):
                             analysis_result = analyze_text(user_input)
+                            formatted_text = format_analysis_result(analysis_result)
+                            st.text_area("분석 결과", formatted_text, height=300)
                             st.session_state.analysis_result = analysis_result
                             st.success("분석이 완료되었습니다.")
         
@@ -1075,6 +1077,7 @@ def main_content():
                 if st.button("출력", key="analysis_pdf_button"):
                     if 'analysis_result' in st.session_state and st.session_state.analysis_result:
                         pdf_path = create_pdf_from_analysis(st.session_state.analysis_text, st.session_state.analysis_result)
+                        pdf.multi_cell(0, 10, txt=formatted_text, align="L")
                         with open(pdf_path, "rb") as f:
                             st.download_button(
                                 label="PDF 다운로드",
