@@ -795,18 +795,18 @@ def main_content():
             with center:
                 st.markdown('<div class="vertical-line"></div>', unsafe_allow_html=True)
                 
-                with keyword_section:
-                    keyword_col1, keyword_col2, keyword_col3, keyword_col4 = st.columns([0.2, 0.2, 0.2, 0.4])
-                    keyword_col1.markdown('<div class="info-cmd">추천 키워드</div>', unsafe_allow_html=True)
+            with keyword_section:
+                keyword_col1, keyword_col2, keyword_col3, keyword_col4 = st.columns([0.2, 0.2, 0.2, 0.4])
+                keyword_col1.markdown('<div class="info-cmd">추천 키워드</div>', unsafe_allow_html=True)
 
-                    keyword_col2.selectbox("학년", ["1학년", "2학년", "3학년", "4학년", "5학년", "6학년"], 
+                keyword_col2.selectbox("학년", ["1학년", "2학년", "3학년", "4학년", "5학년", "6학년"], 
                                         label_visibility="collapsed", key='selected_grade')
-                    keyword_col3.selectbox("교과선택", ["국어", "사회", "과학"], 
+                keyword_col3.selectbox("교과선택", ["국어", "사회", "과학"], 
                                         label_visibility="collapsed", key='selected_subject')
-                    keyword_col4.text_input("키워드 입력", placeholder="키워드를 입력하세요", 
+                keyword_col4.text_input("키워드 입력", placeholder="키워드를 입력하세요", 
                                             label_visibility="collapsed", key='keyword_input')
                                             
-                                            add_vertical_space(1)
+                add_vertical_space(1)
 
                 if 'selected_text' not in st.session_state:
                     st.session_state.selected_text = None
@@ -834,66 +834,62 @@ def main_content():
                         if st.button(button_label, key=f"kwq_{idx}", on_click=select_keyword):
                             pass
 
-                with document_section:
-                    if st.session_state.selected_text:
+            with document_section:
+                if st.session_state.selected_text:
                         st.markdown(f'<div class="selected-text">{st.session_state.selected_text}</div>', unsafe_allow_html=True)
 
-                    if 'generated_questions' not in st.session_state:
+                if 'generated_questions' not in st.session_state:
                         st.session_state.generated_questions = {}
 
-                    col1, col2 = st.columns([0.5, 0.5])
+                col1, col2 = st.columns([0.5, 0.5])
 
-                    with col1:
-                        if st.button("질문 생성"):
-                            # 질문 생성
-                            result = generate_question(
-                                st.session_state.selected_grade,
-                                st.session_state.selected_subject,
-                                st.session_state.selected_text
-                            )
-                            st.session_state.generated_questions = result
-                            st.success("질문이 생성되었습니다!")
+                with col1:
+                    if st.button("질문 생성"):
+                        # 질문 생성
+                        result = generate_question(
+                            st.session_state.selected_grade,
+                            st.session_state.selected_subject,
+                            st.session_state.selected_text
+                        )
+                        st.session_state.generated_questions = result
+                        st.success("질문이 생성되었습니다!")
 
-                    with col2:
-                        if st.session_state.generated_questions:
-                            copy_text = ""
-                            for key, questions in st.session_state.generated_questions.items():
-                                copy_text += f"【{key}】\n" + "\n".join(f"- {q}" for q in questions) + "\n\n"
+                with col2:
+                    if st.session_state.generated_questions:
+                        copy_text = ""
+                        for key, questions in st.session_state.generated_questions.items():
+                            copy_text += f"【{key}】\n" + "\n".join(f"- {q}" for q in questions) + "\n\n"
 
-                            if st.button("복사"):
-                                copy_to_clipboard_js(copy_text)
-                                st.success("질문이 복사되었습니다!")
+                        if st.button("복사"):
+                            copy_to_clipboard_js(copy_text)
+                            st.success("질문이 복사되었습니다!")
 
-                    st.divider()
+                st.divider()
 
                     # 표로 출력
-                    if st.session_state.generated_questions:
-                        st.write("### 생성된 탐구 질문")
+                if st.session_state.generated_questions:
+                    st.write("### 생성된 탐구 질문")
 
-                        max_len = max(len(qs) for qs in st.session_state.generated_questions.values())
-                        data = {
-                            "사실적 질문": st.session_state.generated_questions.get("사실적 질문", []),
-                            "개념적 질문": st.session_state.generated_questions.get("개념적 질문", []),
-                            "논쟁적 질문": st.session_state.generated_questions.get("논쟁적 질문", [])
+                    max_len = max(len(qs) for qs in st.session_state.generated_questions.values())
+                    data = {
+                        "사실적 질문": st.session_state.generated_questions.get("사실적 질문", []),
+                        "개념적 질문": st.session_state.generated_questions.get("개념적 질문", []),
+                        "논쟁적 질문": st.session_state.generated_questions.get("논쟁적 질문", [])
+                    }
+
+                    rows = []
+                    for i in range(max_len):
+                        row = {
+                            "사실적 질문": data["사실적 질문"][i] if i < len(data["사실적 질문"]) else "",
+                            "개념적 질문": data["개념적 질문"][i] if i < len(data["개념적 질문"]) else "",
+                            "논쟁적 질문": data["논쟁적 질문"][i] if i < len(data["논쟁적 질문"]) else "",
                         }
+                        rows.append(row)
 
-                        rows = []
-                        for i in range(max_len):
-                            row = {
-                                "사실적 질문": data["사실적 질문"][i] if i < len(data["사실적 질문"]) else "",
-                                "개념적 질문": data["개념적 질문"][i] if i < len(data["개념적 질문"]) else "",
-                                "논쟁적 질문": data["논쟁적 질문"][i] if i < len(data["논쟁적 질문"]) else "",
-                            }
-                            rows.append(row)
-
-                        df = pd.DataFrame(rows)
-                        st.dataframe(df, use_container_width=True, hide_index=True)
-                    else:
-                        st.info("먼저 키워드를 선택하고 '질문 생성' 버튼을 눌러주세요.")
-                        
-        elif st.session_state.current_page == "📓 내 노트":
-            st.subheader("내 노트")
-            st.write("개인 노트 관리 기능이 준비 중입니다.")
+                    df = pd.DataFrame(rows)
+                    st.dataframe(df, use_container_width=True, hide_index=True)
+                else:
+                    st.info("먼저 키워드를 선택하고 '질문 생성' 버튼을 눌러주세요.")
 
        
         elif st.session_state.current_page == "📓 내 노트":
