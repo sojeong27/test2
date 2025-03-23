@@ -1063,12 +1063,6 @@ def main_content():
             if 'analysis_result' in st.session_state:
                 st.write("### 🧠 분석 결과")
                 st.text_area("결과 요약", value=st.session_state.analysis_result, height=300, label_visibility="collapsed")
-        
-            if 'analysis_mindmap_path' in st.session_state and os.path.exists(st.session_state.analysis_mindmap_path):
-                st.write("### 🗺️ 마인드맵")
-                st.image(st.session_state.analysis_mindmap_path, use_column_width=True)
-
-
                         
         elif st.session_state.current_page == "📓 내 노트":
             st.subheader("내 노트")
