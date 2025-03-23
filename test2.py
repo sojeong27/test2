@@ -247,6 +247,75 @@ def create_question_prompt(grade, selected_subject, topic):
     """
     return ChatPromptTemplate.from_template(prompt_template)
 
+def generate_analysis(text):
+    prompt = ChatPromptTemplate.from_template("""
+    다음 자료를 바탕으로 아래 세 가지 항목으로 분석해 주세요.
+
+    1. 핵심 내용 정리
+    2. 느낀 점
+    3. 궁금한 점
+
+    아래 형식으로 출력해 주세요:
+
+    핵심 내용:
+    ...
+
+    느낀 점:
+    ...
+
+    궁금한 점:
+    ...
+    
+    자료:
+    {text}
+    """)
+    chain = prompt | llm | StrOutputParser()
+    return chain.invoke({"text": text})
+
+def draw_mindmap(analysis_text):
+    dot = Digraph(comment='Mind Map')
+    dot.attr(rankdir='LR', size='10')
+
+    main_topic = "핵심 내용"
+    sub_topics = []
+
+    for line in analysis_text.splitlines():
+        if line.strip().startswith("핵심 내용:"):
+            main_topic = line.replace("핵심 내용:", "").strip() or "핵심 내용"
+        elif line.startswith("느낀 점") or line.startswith("궁금한 점"):
+            break
+        elif line.strip():
+            sub_topics.append(line.strip())
+
+    dot.node(main_topic, main_topic)
+    for i, sub in enumerate(sub_topics):
+        sub_node = f"{main_topic}_{i}"
+        dot.node(sub_node, sub)
+        dot.edge(main_topic, sub_node)
+
+    output_path = "/mnt/data/mindmap_output.png"
+    dot.render(output_path, format="png", cleanup=True)
+    return output_path
+
+def save_mindmap_and_analysis_as_pdf(image_path, analysis_text):
+    pdf = FPDF()
+    pdf.add_page()
+    pdf.add_font("Nanum", "", "/usr/share/fonts/truetype/nanum/NanumGothic.ttf", uni=True)
+    pdf.set_font("Nanum", size=12)
+
+    pdf.cell(200, 10, txt="📓 자료 분석 결과", ln=True, align='C')
+    pdf.ln(10)
+
+    for line in analysis_text.splitlines():
+        pdf.multi_cell(0, 8, txt=line)
+
+    pdf.add_page()
+    pdf.image(image_path, x=10, y=20, w=180)
+
+    output_pdf = "/mnt/data/analysis_output.pdf"
+    pdf.output(output_pdf)
+    return output_pdf
+
 
 @st.cache_data(max_entries=32)
 def keywords_recomand_rag(vectorstore, subject, grade, topic):
