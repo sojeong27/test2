@@ -225,16 +225,6 @@ def parse_report_html_to_json(html_content):
     
     return result
 
-def analyze_text(text: str) -> dict:
-    """
-    주어진 텍스트를 GPT 모델로 분석하여 결과를 반환합니다.
-    결과는 핵심 내용 / 느낀 점 / 궁금한 점으로 구성된 JSON 딕셔너리입니다.
-    """
-    prompt = create_analysis_prompt()
-    chain = prompt | llm | JsonOutputParser()
-    response = chain.invoke({"본문": text})
-    return response
-
 def create_analysis_prompt():
     """
     입력된 텍스트를 바탕으로 핵심 내용, 느낀 점, 궁금한 점을 분석하도록 하는 GPT 프롬프트를 생성합니다.
@@ -258,9 +248,12 @@ def create_analysis_prompt():
     입력된 글:
     {본문}
     """
-    prompt = ChatPromptTemplate.from_template(prompt_template)
+    return ChatPromptTemplate.from_template(prompt_template)
+
+def analyze_text(text):
+    prompt = create_analysis_prompt()
     chain = prompt | llm | JsonOutputParser()
-    response = chain.invoke({"본문": text})
+    response = chain.invoke({"본문": text})  # 여기에 "본문" 키를 정확히 전달해야 함
     return response
 
 from fpdf import FPDF
