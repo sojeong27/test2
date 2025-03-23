@@ -251,17 +251,22 @@ def create_analysis_prompt():
     return ChatPromptTemplate.from_template(prompt_template)
 
 def format_analysis_result(result_dict):
-    question_map = {
-        "1": "1. 이 보고서에서 가장 중요한 내용은 무엇일까?",
-        "2": "2. 핵심 주제에 대한 구체적인 질문"
-    }
-    
     formatted = ""
-    for key in ["1", "2"]:  # 순서대로 출력
-        if key in result_dict:
-            question = question_map.get(key, f"{key}.")
-            answer = result_dict[key]
-            formatted += f"{question}\n→ {answer}\n\n"
+    for key in sorted(result_dict.keys(), key=lambda x: int(x)):
+        item = result_dict[key]
+
+        # 질문-답 dict 형태일 경우
+        if isinstance(item, dict) and "question" in item and "answer" in item:
+            q = item.get("question", "")
+            a = item.get("answer", "")
+        else:  # 단순 문자열일 경우
+            q = item
+            a = ""
+
+        formatted += f"{key}. {q}"
+        if a:
+            formatted += f"\n→ {a}"
+        formatted += "\n\n"
     return formatted.strip()
 
 def analyze_text(text):
