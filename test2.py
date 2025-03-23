@@ -297,32 +297,35 @@ def analyze_text(text):
 
     return structured_result
 
-def export_analysis_to_pdf(analysis_result, file_name="analysis_report.pdf"):
+def export_analysis_to_pdf(result_dict):
     from fpdf import FPDF
     import tempfile
 
     pdf = FPDF()
     pdf.add_page()
-    pdf.add_font("CustomFont", "", os.path.join("fonts", "H2MJRE.TTF"), uni=True)
+    
+    # 폰트 설정 (한글 폰트 포함 필요)
+    font_path = "fonts/H2MJRE.TTF"
+    pdf.add_font("CustomFont", "", font_path, uni=True)
     pdf.set_font("CustomFont", size=12)
 
-    pdf.set_title("자료 분석 보고서")
-    pdf.cell(200, 10, txt="📓 자료 분석 보고서", ln=True, align="C")
+    pdf.cell(200, 10, txt="📓 자료 분석 결과", ln=True, align="C")
     pdf.ln(10)
 
-    for key in sorted(analysis_result.keys(), key=lambda x: int(x)):
-        item = analysis_result[key]
-        question = item.get("question", "")
-        answer = item.get("answer", "")
-
+    for key in sorted(result_dict.keys(), key=lambda x: int(x)):
+        item = result_dict[key]
+        question = clean_text(item.get("question", ""))
+        answer = clean_text(item.get("answer", ""))
+        
+        pdf.set_font("CustomFont", size=12)
         pdf.multi_cell(0, 10, txt=f"{key}. {question}", border=0)
+        pdf.set_font("CustomFont", size=11)
         pdf.multi_cell(0, 10, txt=f"답변: {answer}", border=0)
         pdf.ln(5)
 
-    # PDF 저장
-    temp_path = os.path.join(tempfile.gettempdir(), file_name)
-    pdf.output(temp_path)
-    return temp_path
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmpfile:
+        pdf.output(tmpfile.name)
+        return tmpfile.name
 
 def create_question_prompt(grade, selected_subject, topic):
     prompt_template = f"""
